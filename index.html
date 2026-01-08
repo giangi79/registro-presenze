@@ -37,11 +37,10 @@
 
         .logo-container { text-align: center; margin-bottom: 15px; position: relative; }
         .logo-container img { width: 220px; max-width: 100%; height: auto; }
-        .btn-settings { position: absolute; top: 0; right: 0; background: none; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.2; }
+        .btn-settings { position: absolute; top: 0; right: 0; background: none; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.5; }
 
         h2 { text-align: center; color: var(--primary); font-size: 1.4rem; text-transform: uppercase; margin: 10px 0 20px 0; }
 
-        /* --- STATISTICHE --- */
         .stats-grid { 
             display: grid; 
             grid-template-columns: repeat(3, 1fr); 
@@ -69,10 +68,14 @@
         thead th { background-color: var(--table-header); color: white; padding: 12px 5px; font-size: 11px; text-transform: uppercase; }
         td { border-bottom: 1px solid #eee; padding: 12px 5px; text-align: center; font-size: 14px; }
 
-        .nome-cell { text-align: left; font-weight: bold; width: 30%; padding-left: 10px !important; }
+        .nome-cell { text-align: left; font-weight: bold; width: 30%; padding-left: 10px !important; transition: all 0.3s; }
         .bg-si { background-color: #d4edda !important; color: #155724 !important; }
         .bg-no { background-color: #f8d7da !important; color: #721c24 !important; }
+        
         .row-locked { opacity: 0.6; background-color: #f9f9f9; }
+        .row-locked input[type="radio"] { cursor: not-allowed; }
+
+        .admin-only { display: none; }
 
         .action-buttons { 
             display: grid; 
@@ -99,9 +102,8 @@
 
         input[type="checkbox"], input[type="radio"] { width: 22px; height: 22px; cursor: pointer; vertical-align: middle; }
 
-        /* --- MOBILE RESPONSIVE --- */
         @media screen and (max-width: 768px) {
-            .stats-grid { grid-template-columns: 1fr; } /* Statistiche verticali su mobile */
+            .stats-grid { grid-template-columns: 1fr; }
             thead { display: none; }
             table, tbody, tr, td { display: block; width: 100%; }
             tr { 
@@ -137,18 +139,17 @@
                 padding: 15px;
             }
             .nome-cell::before { display: none; }
-            .select-col { background-color: #f0f4ff; }
-            .action-buttons { grid-template-columns: 1fr 1fr; }
+            .admin-only[data-label]::before { content: attr(data-label); }
         }
 
-        @media print { .action-buttons, .top-controls, .btn-settings, .select-col { display: none; } }
+        @media print { .action-buttons, .top-controls, .btn-settings, .admin-only { display: none; } }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="logo-container">
-        <button class="btn-settings" onclick="cambiaTitolo()">⚙️</button>
+        <button class="btn-settings" onclick="toggleAdmin()">⚙️</button>
         <img src="logo.png" alt="Logo" onerror="this.src='https://via.placeholder.com/200x80?text=Logo+Vesmaco'">
     </div>
 
@@ -171,27 +172,27 @@
     
     <div class="top-controls">
         <input type="text" id="searchInput" class="search-box" onkeyup="filterTable()" placeholder="Cerca atleta o categoria...">
-        <button class="btn btn-gray" onclick="toggleSelectAll()">Seleziona / Deseleziona Tutti</button>
+        <button class="btn btn-gray admin-only" onclick="toggleSelectAll()">Seleziona / Deseleziona Tutti</button>
     </div>
 
     <div class="table-wrapper">
         <table id="targetTable">
             <thead>
                 <tr>
-                    <th style="width: 50px;">Sel.</th>
+                    <th style="width: 50px;" class="admin-only">Sel.</th>
                     <th style="width: 30%;">Atleta</th>
                     <th>Categoria</th>
                     <th>Partecipo</th>
                     <th>Non Partecipo</th>
-                    <th>Reset</th>
-                    <th>Blocco</th>
+                    <th class="admin-only">Reset</th>
+                    <th class="admin-only">Blocco</th>
                 </tr>
             </thead>
             <tbody id="tabella-body"></tbody>
         </table>
     </div>
 
-    <div class="action-buttons">
+    <div class="action-buttons admin-only" id="adminButtons">
         <button class="btn btn-bulk" onclick="bulkAction(true)">🔒 Blocca Sel.</button>
         <button class="btn btn-bulk" style="background: #9c27b0;" onclick="bulkAction(false)">🔓 Sblocca Sel.</button>
         <button class="btn btn-unlock-all" onclick="unlockEverything()">🔓 Sblocca Tutto</button>
@@ -206,8 +207,41 @@
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuZm5mc3pla2ZzdHVvaWVta2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4ODkzOTEsImV4cCI6MjA4MzQ2NTM5MX0.lh7eRFlg7nnI7kEzVPBL9kNyZWX-XFeWQxVbvmzRlvA';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const ADMIN_PASS = "juvenilia1179";
+    let isAdmin = false;
 
-    async function init() { caricaTitolo(); caricaTabella(); }
+    async function init() { 
+        await caricaTitolo(); 
+        await caricaTabella(); 
+    }
+
+    function toggleAdmin() {
+        if (!isAdmin) {
+            const pass = prompt("Password Amministratore:");
+            if (pass === ADMIN_PASS) {
+                isAdmin = true;
+                aggiornaVisibilitaAdmin();
+            } else if (pass !== null) {
+                alert("Password Errata");
+            }
+        } else {
+            isAdmin = false;
+            aggiornaVisibilitaAdmin();
+        }
+    }
+
+    function aggiornaVisibilitaAdmin() {
+        const elements = document.querySelectorAll('.admin-only');
+        elements.forEach(el => {
+            if (el.tagName === 'TH' || el.tagName === 'TD') {
+                el.style.display = isAdmin ? 'table-cell' : 'none';
+            } else if (el.id === 'adminButtons') {
+                el.style.display = isAdmin ? 'grid' : 'none';
+            } else {
+                el.style.display = isAdmin ? 'block' : 'none';
+            }
+        });
+        caricaTabella(); 
+    }
 
     async function caricaTitolo() {
         const { data } = await _supabase.from('configurazione').select('valore').eq('chiave', 'titolo_gara').single();
@@ -217,19 +251,10 @@
         }
     }
 
-    async function cambiaTitolo() {
-        if (prompt("Password Amministratore:") === ADMIN_PASS) {
-            const nuovo = prompt("Nuovo Titolo:");
-            if (nuovo) { 
-                await _supabase.from('configurazione').update({ valore: nuovo }).eq('chiave', 'titolo_gara');
-                caricaTitolo(); 
-            }
-        }
-    }
-
     async function caricaTabella() {
         const { data, error } = await _supabase.from('presenze').select('*').order('id', { ascending: true });
         if (error) return;
+        
         const tbody = document.getElementById('tabella-body');
         tbody.innerHTML = '';
         
@@ -244,66 +269,88 @@
             const cl = p.stato === 'si' ? 'bg-si' : (p.stato === 'no' ? 'bg-no' : '');
             
             tr.innerHTML = `
-                <td data-label="Seleziona" class="select-col"><input type="checkbox" class="atleta-checkbox" value="${p.id}"></td>
+                <td data-label="Seleziona" class="admin-only" style="display: ${isAdmin ? 'table-cell' : 'none'}">
+                    <input type="checkbox" class="atleta-checkbox" value="${p.id}">
+                </td>
                 <td class="nome-cell ${cl}">${p.nome}</td>
                 <td data-label="Categoria">${p.categoria}</td>
-                <td data-label="Partecipo"><input type="radio" name="p_${p.id}" ${p.stato === 'si' ? 'checked' : ''} ${p.bloccato ? 'disabled' : ''} onclick="salva('${p.id}', 'si')"></td>
-                <td data-label="Non Partecipo"><input type="radio" name="p_${p.id}" ${p.stato === 'no' ? 'checked' : ''} ${p.bloccato ? 'disabled' : ''} onclick="salva('${p.id}', 'no')"></td>
-                <td data-label="Reset"><button onclick="confermaResetSingolo('${p.id}', '${p.nome}')" style="background:none; border:none; font-size:1.2rem;" ${p.bloccato ? 'disabled' : ''}>🔄</button></td>
-                <td data-label="Blocco"><button onclick="checkAuthAndToggle('${p.id}', ${p.bloccato})" style="background:none; border:none; font-size:1.2rem;">${p.bloccato ? '🔒' : '🔓'}</button></td>
+                <td data-label="Partecipo">
+                    <input type="radio" name="p_${p.id}" ${p.stato === 'si' ? 'checked' : ''} ${p.bloccato ? 'disabled' : ''} onclick="salva('${p.id}', 'si')">
+                </td>
+                <td data-label="Non Partecipo">
+                    <input type="radio" name="p_${p.id}" ${p.stato === 'no' ? 'checked' : ''} ${p.bloccato ? 'disabled' : ''} onclick="salva('${p.id}', 'no')">
+                </td>
+                <td data-label="Reset" class="admin-only" style="display: ${isAdmin ? 'table-cell' : 'none'}">
+                    <button onclick="confermaResetSingolo('${p.id}', '${p.nome.replace(/'/g, "\\'")}')" style="background:none; border:none; font-size:1.2rem; cursor:pointer;" ${p.bloccato ? 'disabled' : ''}>🔄</button>
+                </td>
+                <td data-label="Blocco" class="admin-only" style="display: ${isAdmin ? 'table-cell' : 'none'}">
+                    <button onclick="checkAuthAndToggle('${p.id}', ${p.bloccato})" style="background:none; border:none; font-size:1.2rem; cursor:pointer;">${p.bloccato ? '🔒' : '🔓'}</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
 
-        // Aggiorna contatori statistiche
         document.getElementById('count-si').innerText = cSi;
         document.getElementById('count-no').innerText = cNo;
         document.getElementById('count-tot').innerText = data.length;
     }
 
-    async function salva(id, valore) { await _supabase.from('presenze').update({ stato: valore }).eq('id', id); }
+    async function salva(id, valore) { 
+        await _supabase.from('presenze').update({ stato: valore }).eq('id', id); 
+    }
+
+    async function confermaResetSingolo(id, nome) {
+        if (confirm("Resettare la scelta per " + nome + "?")) {
+            await _supabase.from('presenze').update({ stato: 'vuoto' }).eq('id', id);
+        }
+    }
 
     async function checkAuthAndToggle(id, statoAttuale) {
-        if (prompt("Password:") === ADMIN_PASS) { await _supabase.from('presenze').update({ bloccato: !statoAttuale }).eq('id', id); }
+        if (isAdmin) { 
+            await _supabase.from('presenze').update({ bloccato: !statoAttuale }).eq('id', id); 
+        }
     }
 
     async function bulkAction(deveBloccare) {
+        if (!isAdmin) return;
         const selezionati = Array.from(document.querySelectorAll('.atleta-checkbox:checked')).map(cb => cb.value);
         if (selezionati.length === 0) return alert("Seleziona almeno un atleta!");
-        if (prompt("Password Amministratore:") === ADMIN_PASS) { await _supabase.from('presenze').update({ bloccato: deveBloccare }).in('id', selezionati); }
+        await _supabase.from('presenze').update({ bloccato: deveBloccare }).in('id', selezionati); 
     }
 
     async function unlockEverything() {
-        if (prompt("Password Sblocco Totale:") === ADMIN_PASS) { await _supabase.from('presenze').update({ bloccato: false }).neq('id', 0); }
+        if (isAdmin && confirm("Sbloccare tutti gli atleti?")) { 
+            await _supabase.from('presenze').update({ bloccato: false }).neq('id', 0); 
+        }
     }
 
     async function resetTutti() {
-        if (prompt("Password Reset Totale:") === ADMIN_PASS) {
-            if(confirm("Sei sicuro? Questo azzererà le risposte di TUTTI gli atleti.")) {
-                await _supabase.from('presenze').update({ stato: 'vuoto' }).neq('id', 0);
-            }
+        if (isAdmin && confirm("Resettare TUTTE le risposte?")) {
+            await _supabase.from('presenze').update({ stato: 'vuoto' }).neq('id', 0);
         }
     }
 
     function toggleSelectAll() {
-        const checkboxes = document.querySelectorAll('.atleta-checkbox');
-        const anyUnchecked = Array.from(checkboxes).some(cb => !cb.checked);
+        const checkboxes = Array.from(document.querySelectorAll('.atleta-checkbox'));
+        if (checkboxes.length === 0) return;
+        const anyUnchecked = checkboxes.some(cb => !cb.checked);
         checkboxes.forEach(cb => cb.checked = anyUnchecked);
     }
 
     function filterTable() {
         const input = document.getElementById("searchInput").value.toUpperCase();
         const rows = document.getElementById("tabella-body").getElementsByTagName("tr");
-        for (let row of rows) row.style.display = row.innerText.toUpperCase().includes(input) ? "" : "none";
+        for (let row of rows) {
+            row.style.display = row.innerText.toUpperCase().includes(input) ? "" : "none";
+        }
     }
 
     function exportToExcel() {
         const table = document.getElementById("targetTable");
         const wb = XLSX.utils.table_to_book(table, {sheet: "Presenze"});
-        XLSX.writeFile(wb, "Vesmaco_Race_Report.xlsx");
+        XLSX.writeFile(wb, "Report_Vesmaco.xlsx");
     }
 
-    // Sync in tempo reale
     _supabase.channel('any').on('postgres_changes', { event: '*', schema: 'public', table: 'presenze' }, () => caricaTabella()).subscribe();
     _supabase.channel('config').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'configurazione' }, () => caricaTitolo()).subscribe();
 
