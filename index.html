@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Live Supabase</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #1a73e8; --success: #34a853; }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; margin: 0; padding: 10px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; }
+        .status-bar { text-align: center; font-size: 0.85rem; padding: 10px; margin-bottom: 10px; border-radius: 5px; background: #e8f0fe; color: #1a73e8; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th { background: var(--primary); color: white; padding: 12px; font-size: 14px; }
+        td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; }
+        .nome-cell { text-align: left; font-weight: bold; }
+
+        @media screen and (max-width: 600px) {
+            thead { display: none; }
+            tr { display: block; border: 1px solid #ddd; margin-bottom: 10px; border-radius: 8px; }
+            td { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f1f1f1; }
+            td::before { content: attr(data-label); font-weight: bold; color: #666; }
+            .nome-cell { justify-content: center; background: #f1f3f4; }
+            .nome-cell::before { content: ""; }
+            input[type="radio"] { width: 25px; height: 25px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Registro Presenze Real-Time</h2>
+    <div id="status" class="status-bar">Connessione in corso...</div>
+
+    <table id="tabella">
+        <thead>
+            <tr>
+                <th>Nome e Cognome</th>
+                <th>Cat.</th>
+                <th>Sì</th>
+                <th>No</th>
+            </tr>
+        </thead>
+        <tbody id="tabella-body">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    // CONFIGURAZIONE SUPABASE
+    const SUPABASE_URL = https://jnfnfszekfstuoiemkgf.supabase.co;
+    const SUPABASE_KEY = sb_publishable_wzqOa8ecTShc1fKxbVBtgw_7KYlpSao;
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    const listaIniziale = [
+        { nome: "CONTENTI DESIREE", categoria: "SE" },
+        { nome: "BUCCOLINI VALENTINA", categoria: "SE" },
+        { nome: "FERMANELLI SOFIA", categoria: "SE" },
+        { nome: "FRISOLI ALESSIA", categoria: "JU" },
+        { nome: "PETRUCCI SARA", categoria: "AL" },
+        { nome: "MARCOALDI BENEDETTA", categoria: "AL" },
+        { nome: "MILIOZZI MATILDE", categoria: "AL" },
+        { nome: "VIRGILI EMMA", categoria: "AL" },
+        { nome: "BARTOLINI NOEMI", categoria: "AL" },
+        { nome: "NAPOLETANO NOEMI", categoria: "AL" },
+        { nome: "ILLUMINATI CHIARA", categoria: "RA" },
+        { nome: "BALDASSARRI SUSANNA", categoria: "RA" },
+        { nome: "IDDA AURORA ANGELICA", categoria: "RA" },
+        { nome: "MEDORI ENRICA", categoria: "RA" },
+        { nome: "TORDINI IRENE", categoria: "RA" },
+        { nome: "EBAI SOVIRA VIANA AWAYOR", categoria: "RA" },
+        { nome: "MENGHI ALESSIA", categoria: "RA" },
+        { nome: "PANICHELLI FLAVIA", categoria: "RA" },
+        { nome: "TRIBUZI MARIA GIULIA", categoria: "RA" },
+        { nome: "ROMANO DESIREE", categoria: "RA" },
+        { nome: "LATTONI MIA", categoria: "RA" },
+        { nome: "FERRETTI ELISA", categoria: "R1" },
+        { nome: "BARTOLINI GLORIA", categoria: "R1" },
+        { nome: "SANGARE MAME FATOU", categoria: "ES" },
+        { nome: "PAESANI TEODORA", categoria: "ES" },
+        { nome: "NIKAJ AURORA", categoria: "ES" },
+        { nome: "EHSANI ELINA", categoria: "ES" },
+        { nome: "SIDERA MELISSA", categoria: "ES" },
+        { nome: "SIDERA MARGHERITA", categoria: "ES" },
+        { nome: "CROCETTI GIORGIA", categoria: "GI" },
+        { nome: "MITILLO RACHELE", categoria: "GI" },
+        { nome: "SARGONI DANNY", categoria: "SE" },
+        { nome: "MARINELLI EDOARDO", categoria: "SE" },
+        { nome: "PANICHELLI NICOLA", categoria: "AL" },
+        { nome: "MEZZADRI ANDREA", categoria: "AL" },
+        { nome: "SDRUBOLINI DAVIDE", categoria: "AL" },
+        { nome: "BACCIFAVA LEONARDO", categoria: "RA" },
+        { nome: "ZITTI NICOLA", categoria: "RA" },
+        { nome: "CARDINI EDOARDO", categoria: "RA" },
+        { nome: "SANTUCCI LORENZO", categoria: "RA" },
+        { nome: "BEVACQUA LORENZO", categoria: "R1" },
+        { nome: "DUMITRACHE MATTIA", categoria: "ES" },
+        { nome: "SCOPINI ALDO", categoria: "ES" },
+        { nome: "HADZIPASIC MIRFET", categoria: "ES" }
+    ];
+
+    async function inizializzaDatabase() {
+        const { data } = await _supabase.from('presenze').select('id').limit(1);
+        if (data.length === 0) {
+            document.getElementById('status').innerText = "Caricamento nomi nel database...";
+            await _supabase.from('presenze').insert(listaIniziale.map(p => ({ ...p, stato: 'vuoto' })));
+        }
+        caricaTabella();
+    }
+
+    async function caricaTabella() {
+        const { data, error } = await _supabase.from('presenze').select('*').order('id', { ascending: true });
+        if (error) return;
+
+        const tbody = document.getElementById('tabella-body');
+        tbody.innerHTML = '';
+        data.forEach(p => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="nome-cell">${p.nome}</td>
+                <td data-label="Cat.">${p.categoria}</td>
+                <td data-label="Sì"><input type="radio" name="p_${p.id}" ${p.stato === 'si' ? 'checked' : ''} onclick="salva('${p.id}', 'si')"></td>
+                <td data-label="No"><input type="radio" name="p_${p.id}" ${p.stato === 'no' ? 'checked' : ''} onclick="salva('${p.id}', 'no')"></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        document.getElementById('status').innerText = "Database sincronizzato ✓";
+    }
+
+    async function salva(id, valore) {
+        document.getElementById('status').innerText = "Salvataggio...";
+        await _supabase.from('presenze').update({ stato: valore }).eq('id', id);
+        document.getElementById('status').innerText = "Salvato ✓";
+    }
+
+    // Ascolta i cambiamenti degli altri utenti in tempo reale
+    _supabase.channel('schema-db-changes')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'presenze' }, payload => {
+        caricaTabella();
+    })
+    .subscribe();
+
+    inizializzaDatabase();
+</script>
+</body>
+</html>
