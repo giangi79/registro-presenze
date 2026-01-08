@@ -3,170 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro Live Supabase</title>
+    <title>INTERNATIONAL VESMACO RACE</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; }
-        body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; margin: 0; padding: 10px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #333; }
-        .status-bar { text-align: center; font-size: 0.85rem; padding: 10px; margin-bottom: 10px; border-radius: 5px; background: #e8f0fe; color: #1a73e8; }
+        :root { --primary: #1a73e8; --success: #34a853; --danger: #ea4335; --gray: #5f6368; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: #f8f9fa; margin: 0; padding: 10px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        /* Dashboard Statistiche */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .stat-card { padding: 15px; border-radius: 8px; text-align: center; color: white; font-weight: bold; }
+        .stat-presenti { background-color: var(--success); }
+        .stat-assenti { background-color: var(--danger); }
+        .stat-totali { background-color: var(--primary); }
+        .stat-label { font-size: 0.75rem; text-transform: uppercase; display: block; margin-bottom: 5px; opacity: 0.9; }
+        .stat-value { font-size: 1.5rem; }
+
+        .status-bar { text-align: center; font-size: 0.8rem; padding: 5px; color: var(--gray); margin-bottom: 10px; }
+        .search-box { width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; outline: none; }
         
         table { width: 100%; border-collapse: collapse; }
-        th { background: var(--primary); color: white; padding: 12px; font-size: 14px; }
+        th { background: var(--primary); color: white; padding: 12px; font-size: 13px; text-transform: uppercase; position: sticky; top: 0; }
         td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; }
-        .nome-cell { text-align: left; font-weight: bold; }
+        .nome-cell { text-align: left; font-weight: bold; color: #2c3e50; }
+        
+        input[type="radio"] { width: 22px; height: 22px; cursor: pointer; accent-color: var(--primary); vertical-align: middle; }
+        .btn-reset-row { background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 5px; }
 
         @media screen and (max-width: 600px) {
             thead { display: none; }
-            tr { display: block; border: 1px solid #ddd; margin-bottom: 10px; border-radius: 8px; }
-            td { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f1f1f1; }
-            td::before { content: attr(data-label); font-weight: bold; color: #666; }
-            .nome-cell { justify-content: center; background: #f1f3f4; }
+            tr { display: block; border: 1px solid #ddd; margin-bottom: 12px; border-radius: 10px; background: #fff; overflow: hidden; }
+            td { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f1f1f1; }
+            td::before { content: attr(data-label); font-weight: bold; color: #888; font-size: 11px; }
+            .nome-cell { justify-content: center; background: #f1f3f4; font-size: 1.1rem; border-bottom: 2px solid #ddd; }
             .nome-cell::before { content: ""; }
-            input[type="radio"] { width: 25px; height: 25px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .stat-totali { grid-column: span 2; }
         }
+
+        .btn-print { display: block; width: 100%; max-width: 250px; margin: 30px auto 0; padding: 15px; background: #202124; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        @media print { .btn-print, .search-box, .btn-reset-row, .status-bar { display: none; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>INTERNATIONAL VESMACO RACE SENIGALLIA</h2>
-    <div id="status" class="status-bar">Connessione in corso...</div>
+    <h2>INTERNATIONAL VESMACO RACE</h2>
+    <div id="status" class="status-bar">Connessione...</div>
 
-    <table id="tabella">
+    <div class="stats-grid">
+        <div class="stat-card stat-presenti">
+            <span class="stat-label">Presenti</span>
+            <div id="count-si" class="stat-value">0</div>
+        </div>
+        <div class="stat-card stat-assenti">
+            <span class="stat-label">Assenti</span>
+            <div id="count-no" class="stat-value">0</div>
+        </div>
+        <div class="stat-card stat-totali">
+            <span class="stat-label">Totali Registrati</span>
+            <div id="count-tot" class="stat-value">0</div>
+        </div>
+    </div>
+    
+    <input type="text" id="searchInput" class="search-box" onkeyup="filterTable()" placeholder="Cerca atleta o categoria...">
+
+    <table id="targetTable">
         <thead>
             <tr>
                 <th>Nome e Cognome</th>
                 <th>Categoria</th>
                 <th>Partecipo</th>
                 <th>Non Partecipo</th>
+                <th>Reset</th>
             </tr>
         </thead>
-        <tbody id="tabella-body">
-            </tbody>
+        <tbody id="tabella-body"></tbody>
     </table>
+
+    <button class="btn-print" onclick="window.print()">Stampa Report PDF</button>
 </div>
 
-" <script>
-    // 1. CONFIGURAZIONE SUPABASE
+<script>
+    // --- INSERISCI QUI I TUOI DATI SUPABASE ---
     const SUPABASE_URL = 'https://jnfnfszekfstuoiemkgf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuZm5mc3pla2ZzdHVvaWVta2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4ODkzOTEsImV4cCI6MjA4MzQ2NTM5MX0.lh7eRFlg7nnI7kEzVPBL9kNyZWX-XFeWQxVbvmzRlvA';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // 2. LISTA NOMINATIVI AGGIORNATA
     const listaIniziale = [
-        { nome: "CONTENTI DESIREE", categoria: "SENIOR" },
-        { nome: "BUCCOLINI VALENTINA", categoria: "SENIOR" },
-        { nome: "FERMANELLI SOFIA", categoria: "SENIOR" },
-        { nome: "FRISOLI ALESSIA", categoria: "JUNIOR" },
-        { nome: "PETRUCCI SARA", categoria: "ALLIEVI" },
-        { nome: "MARCOALDI BENEDETTA", categoria: "ALLIEVI" },
-        { nome: "MILIOZZI MATILDE", categoria: "ALLIEVI" },
-        { nome: "VIRGILI EMMA", categoria: "ALLIEVI" },
-        { nome: "BARTOLINI NOEMI", categoria: "ALLIEVI" },
-        { nome: "NAPOLETANO NOEMI", categoria: "ALLIEVI" },
-        { nome: "ILLUMINATI CHIARA", categoria: "RAGAZZI" },
-        { nome: "BALDASSARRI SUSANNA", categoria: "RAGAZZI" },
-        { nome: "IDDA AURORA ANGELICA", categoria: "RAGAZZI" },
-        { nome: "MEDORI ENRICA", categoria: "RAGAZZI" },
-        { nome: "TORDINI IRENE", categoria: "RAGAZZI" },
-        { nome: "EBAI SOVIRA VIANA AWAYOR", categoria: "RAGAZZI" },
-        { nome: "MENGHI ALESSIA", categoria: "RAGAZZI" },
-        { nome: "PANICHELLI FLAVIA", categoria: "RAGAZZI" },
-        { nome: "TRIBUZI MARIA GIULIA", categoria: "RAGAZZI" },
-        { nome: "ROMANO DESIREE", categoria: "RAGAZZI" },
-        { nome: "LATTONI MIA", categoria: "RAGAZZI" },
-        { nome: "FERRETTI ELISA", categoria: "R12" },
-        { nome: "BARTOLINI GLORIA", categoria: "R12" },
-        { nome: "SANGARE MAME FATOU", categoria: "ESORDIENTI" },
-        { nome: "PAESANI TEODORA", categoria: "ESORDIENTI" },
-        { nome: "NIKAJ AURORA", categoria: "ESORDIENTI" },
-        { nome: "EHSANI ELINA", categoria: "ESORDIENTI" },
-        { nome: "SIDERA MELISSA", categoria: "ESORDIENTI" },
-        { nome: "SIDERA MARGHERITA", categoria: "ESORDIENTI" },
-        { nome: "CROCETTI GIORGIA", categoria: "GIOVANISSIMI" },
-        { nome: "MITILLO RACHELE", categoria: "GIOVANISSIMI" },
-        { nome: "SARGONI DANNY", categoria: "SENIOR" },
-        { nome: "MARINELLI EDOARDO", categoria: "SENIOR" },
-        { nome: "PANICHELLI NICOLA", categoria: "ALLIEVI" },
-        { nome: "MEZZADRI ANDREA", categoria: "ALLIEVI" },
-        { nome: "SDRUBOLINI DAVIDE", categoria: "ALLIEVI" },
-        { nome: "BACCIFAVA LEONARDO", categoria: "RAGAZZI" },
-        { nome: "ZITTI NICOLA", categoria: "RAGAZZI" },
-        { nome: "CARDINI EDOARDO", categoria: "RAGAZZI" },
-        { nome: "SANTUCCI LORENZO", categoria: "RAGAZZI" },
-        { nome: "BEVACQUA LORENZO", categoria: "R12" },
-        { nome: "DUMITRACHE MATTIA", categoria: "ESORDIENTI" },
-        { nome: "SCOPINI ALDO", categoria: "ESORDIENTI" },
-        { nome: "HADZIPASIC MIRFET", categoria: "ESORDIENTI" }
+        { nome: "CONTENTI DESIREE", categoria: "SENIOR" }, { nome: "BUCCOLINI VALENTINA", categoria: "SENIOR" },
+        { nome: "FERMANELLI SOFIA", categoria: "SENIOR" }, { nome: "FRISOLI ALESSIA", categoria: "JUNIOR" },
+        { nome: "PETRUCCI SARA", categoria: "ALLIEVI" }, { nome: "MARCOALDI BENEDETTA", categoria: "ALLIEVI" },
+        { nome: "MILIOZZI MATILDE", categoria: "ALLIEVI" }, { nome: "VIRGILI EMMA", categoria: "ALLIEVI" },
+        { nome: "BARTOLINI NOEMI", categoria: "ALLIEVI" }, { nome: "NAPOLETANO NOEMI", categoria: "ALLIEVI" },
+        { nome: "ILLUMINATI CHIARA", categoria: "RAGAZZI" }, { nome: "BALDASSARRI SUSANNA", categoria: "RAGAZZI" },
+        { nome: "IDDA AURORA ANGELICA", categoria: "RAGAZZI" }, { nome: "MEDORI ENRICA", categoria: "RAGAZZI" },
+        { nome: "TORDINI IRENE", categoria: "RAGAZZI" }, { nome: "EBAI SOVIRA VIANA AWAYOR", categoria: "RAGAZZI" },
+        { nome: "MENGHI ALESSIA", categoria: "RAGAZZI" }, { nome: "PANICHELLI FLAVIA", categoria: "RAGAZZI" },
+        { nome: "TRIBUZI MARIA GIULIA", categoria: "RAGAZZI" }, { nome: "ROMANO DESIREE", categoria: "RAGAZZI" },
+        { nome: "LATTONI MIA", categoria: "RAGAZZI" }, { nome: "FERRETTI ELISA", categoria: "R12" },
+        { nome: "BARTOLINI GLORIA", categoria: "R12" }, { nome: "SANGARE MAME FATOU", categoria: "ESORDIENTI" },
+        { nome: "PAESANI TEODORA", categoria: "ESORDIENTI" }, { nome: "NIKAJ AURORA", categoria: "ESORDIENTI" },
+        { nome: "EHSANI ELINA", categoria: "ESORDIENTI" }, { nome: "SIDERA MELISSA", categoria: "ESORDIENTI" },
+        { nome: "SIDERA MARGHERITA", categoria: "ESORDIENTI" }, { nome: "CROCETTI GIORGIA", categoria: "GIOVANISSIMI" },
+        { nome: "MITILLO RACHELE", categoria: "GIOVANISSIMI" }, { nome: "SARGONI DANNY", categoria: "SENIOR" },
+        { nome: "MARINELLI EDOARDO", categoria: "SENIOR" }, { nome: "PANICHELLI NICOLA", categoria: "ALLIEVI" },
+        { nome: "MEZZADRI ANDREA", categoria: "ALLIEVI" }, { nome: "SDRUBOLINI DAVIDE", categoria: "ALLIEVI" },
+        { nome: "BACCIFAVA LEONARDO", categoria: "RAGAZZI" }, { nome: "ZITTI NICOLA", categoria: "RAGAZZI" },
+        { nome: "CARDINI EDOARDO", categoria: "RAGAZZI" }, { nome: "SANTUCCI LORENZO", categoria: "RAGAZZI" },
+        { nome: "BEVACQUA LORENZO", categoria: "R12" }, { nome: "DUMITRACHE MATTIA", categoria: "ESORDIENTI" },
+        { nome: "SCOPINI ALDO", categoria: "ESORDIENTI" }, { nome: "HADZIPASIC MIRFET", categoria: "ESORDIENTI" }
     ];
 
-    // 3. FUNZIONE INIZIALIZZAZIONE (Carica i nomi se il DB è vuoto)
     async function inizializzaDatabase() {
         try {
             const { data, error } = await _supabase.from('presenze').select('id').limit(1);
             if (error) throw error;
-
             if (data.length === 0) {
-                document.getElementById('status').innerText = "Popolamento database...";
                 await _supabase.from('presenze').insert(listaIniziale.map(p => ({ ...p, stato: 'vuoto' })));
             }
             caricaTabella();
         } catch (err) {
-            console.error("Errore inizializzazione:", err);
-            document.getElementById('status').innerText = "Errore di connessione a Supabase.";
+            document.getElementById('status').innerText = "Errore connessione API.";
         }
     }
 
-    // 4. CARICAMENTO TABELLA
     async function caricaTabella() {
         const { data, error } = await _supabase.from('presenze').select('*').order('id', { ascending: true });
-        if (error) {
-            console.error(error);
-            return;
-        }
+        if (error) return;
 
         const tbody = document.getElementById('tabella-body');
         tbody.innerHTML = '';
+        
+        let countSi = 0, countNo = 0;
+
         data.forEach(p => {
+            if(p.stato === 'si') countSi++;
+            if(p.stato === 'no') countNo++;
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td class="nome-cell">${p.nome}</td>
                 <td data-label="Cat.">${p.categoria}</td>
                 <td data-label="Sì"><input type="radio" name="p_${p.id}" ${p.stato === 'si' ? 'checked' : ''} onclick="salva('${p.id}', 'si')"></td>
                 <td data-label="No"><input type="radio" name="p_${p.id}" ${p.stato === 'no' ? 'checked' : ''} onclick="salva('${p.id}', 'no')"></td>
+                <td data-label="Reset"><button class="btn-reset-row" onclick="salva('${p.id}', 'vuoto')">🔄</button></td>
             `;
             tbody.appendChild(tr);
         });
-        document.getElementById('status').innerText = "Database sincronizzato ✓";
+
+        // Aggiorna contatori
+        document.getElementById('count-si').innerText = countSi;
+        document.getElementById('count-no').innerText = countNo;
+        document.getElementById('count-tot').innerText = data.length;
+        document.getElementById('status').innerText = "Ultimo aggiornamento: " + new Date().toLocaleTimeString();
     }
 
-    // 5. SALVATAGGIO SCELTA
-    async function salva(id, valore) {
-        document.getElementById('status').innerText = "Salvataggio...";
+async function salva(id, valore) {
+        // Ottimizzazione: aggiorna subito il database
         const { error } = await _supabase.from('presenze').update({ stato: valore }).eq('id', id);
-        if (!error) {
-            document.getElementById('status').innerText = "Salvato ✓";
+        if (error) console.error("Errore salvataggio:", error);
+    }
+
+    function filterTable() {
+        let input = document.getElementById("searchInput").value.toUpperCase();
+        let rows = document.getElementById("tabella-body").getElementsByTagName("tr");
+        for (let row of rows) {
+            row.style.display = row.innerText.toUpperCase().includes(input) ? "" : "none";
         }
     }
 
-    // 6. REALTIME (Sincronizzazione tra più utenti)
-    _supabase.channel('schema-db-changes')
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'presenze' }, payload => {
-        caricaTabella();
-    })
-    .subscribe();
+    // --- SCRIPT REALTIME (ASCOLTA I CAMBIAMENTI) ---
+    const channel = _supabase
+        .channel('cambiamenti-live')
+        .on(
+            'postgres_changes', 
+            { event: '*', schema: 'public', table: 'presenze' }, 
+            (payload) => {
+                console.log("Modifica rilevata!", payload);
+                caricaTabella();
+            }
+        )
+        .subscribe((status) => {
+            console.log("Stato Realtime:", status);
+            if(status === 'SUBSCRIBED') document.getElementById('status').innerText = "Live: Connesso ✓";
+        });
 
-    // Avvio
     inizializzaDatabase();
 </script>
 </body>
-
 </html>
-
-
-
-
-
-
