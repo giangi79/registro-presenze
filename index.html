@@ -17,42 +17,48 @@
             --table-header: #2c3e50; 
         }
 
-        /* Impedisce lo scroll laterale al corpo della pagina */
+        /* Blocco totale scroll orizzontale */
         html, body { 
             overflow-x: hidden; 
             width: 100%;
             margin: 0;
             padding: 0;
             background-color: #f0f2f5;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
         .container { 
-            max-width: 100%; 
+            max-width: 1100px; 
             margin: 0 auto; 
             background: white; 
             padding: 15px; 
             box-sizing: border-box;
+            min-height: 100vh;
         }
 
         .logo-container { text-align: center; margin-bottom: 15px; position: relative; }
-        .logo-container img { width: 200px; max-width: 100%; height: auto; }
+        .logo-container img { width: 220px; max-width: 100%; height: auto; }
         
         .btn-settings { position: absolute; top: 0; right: 0; background: none; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.2; }
 
-        h2 { text-align: center; color: var(--primary); font-size: 1.3rem; text-transform: uppercase; margin: 10px 0 20px 0; padding: 0 10px; }
+        h2 { text-align: center; color: var(--primary); font-size: 1.4rem; text-transform: uppercase; margin: 10px 0 20px 0; line-height: 1.2; }
 
-        /* Layout Tabella Desktop */
-        .table-wrapper { width: 100%; }
+        /* Input Cerca e Seleziona Tutto */
+        .top-controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        .search-box { width: 100%; padding: 14px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
+
+        /* Desktop Table */
+        .table-wrapper { width: 100%; overflow: hidden; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; table-layout: fixed; }
-        thead th { background-color: var(--table-header); color: white; padding: 12px 5px; font-size: 10px; text-transform: uppercase; }
-        td { border-bottom: 1px solid #eee; padding: 10px 5px; text-align: center; font-size: 14px; word-wrap: break-word; }
+        thead th { background-color: var(--table-header); color: white; padding: 12px 5px; font-size: 11px; text-transform: uppercase; }
+        td { border-bottom: 1px solid #eee; padding: 12px 5px; text-align: center; font-size: 14px; }
 
-        .nome-cell { text-align: left; font-weight: bold; width: 30%; }
-        .bg-si { background-color: #d4edda !important; }
-        .bg-no { background-color: #f8d7da !important; }
+        .nome-cell { text-align: left; font-weight: bold; width: 30%; padding-left: 10px !important; }
+        .bg-si { background-color: #d4edda !important; color: #155724 !important; }
+        .bg-no { background-color: #f8d7da !important; color: #721c24 !important; }
+        .row-locked { opacity: 0.6; background-color: #f9f9f9; }
 
-        /* Pulsanti inferiori */
+        /* Bottoni Azione */
         .action-buttons { 
             display: grid; 
             grid-template-columns: repeat(2, 1fr); 
@@ -66,29 +72,30 @@
             border-radius: 8px; 
             font-weight: bold; 
             color: white; 
-            font-size: 0.8rem; 
+            font-size: 0.85rem; 
             cursor: pointer;
-            width: 100%;
+            text-align: center;
         }
         
         .btn-bulk { background: var(--purple); }
         .btn-unlock-all { background: var(--orange); }
         .btn-reset-all { background: var(--danger); }
         .btn-excel { background: var(--success); }
+        .btn-gray { background: #5f6368; }
 
-        input[type="checkbox"], input[type="radio"] { width: 20px; height: 20px; margin: 0; vertical-align: middle; }
+        input[type="checkbox"], input[type="radio"] { width: 22px; height: 22px; cursor: pointer; vertical-align: middle; }
 
-        /* --- TRASFORMAZIONE MOBILE (NO SCROLL LATERALE) --- */
-        @media screen and (max-width: 600px) {
-            thead { display: none; } /* Rimuove l'intestazione orizzontale */
+        /* --- STILE MOBILE VERTICALE --- */
+        @media screen and (max-width: 768px) {
+            thead { display: none; } /* Nascondi testata tabella */
             
-            table, tbody, tr, td { display: block; width: 100%; box-sizing: border-box; }
+            table, tbody, tr, td { display: block; width: 100%; }
             
             tr { 
                 margin-bottom: 15px; 
                 border: 1px solid #ddd; 
-                border-radius: 10px; 
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+                border-radius: 12px; 
+                box-shadow: 0 2px 8px rgba(0,0,0,0.05);
                 overflow: hidden;
             }
 
@@ -96,36 +103,37 @@
                 display: flex; 
                 justify-content: space-between; 
                 align-items: center; 
-                text-align: right; 
-                padding: 10px 15px; 
+                padding: 12px 15px; 
                 border-bottom: 1px solid #f0f0f0; 
-                font-size: 14px;
+                box-sizing: border-box;
             }
 
+            /* Inserimento etichette Partecipo / Non Partecipo ecc. */
             td::before { 
                 content: attr(data-label); 
                 font-weight: bold; 
                 color: #666; 
                 font-size: 11px; 
                 text-transform: uppercase; 
-                text-align: left;
                 flex: 1;
+                text-align: left;
             }
 
             .nome-cell { 
                 background: #f8f9fa; 
                 justify-content: center; 
                 font-size: 1.1rem; 
-                padding: 12px;
                 width: 100% !important;
                 border-bottom: 2px solid #eee;
+                padding: 15px;
             }
             .nome-cell::before { display: none; }
 
             .select-col { background-color: #f0f4ff; }
-            
-            .action-buttons { grid-template-columns: 1fr 1fr; } /* Due colonne di tasti */
+            .action-buttons { grid-template-columns: 1fr 1fr; }
         }
+
+        @media print { .action-buttons, .top-controls, .btn-settings, .select-col { display: none; } }
     </style>
 </head>
 <body>
@@ -138,20 +146,20 @@
 
     <h2 id="mainTitle">CARICAMENTO...</h2>
     
-    <div style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
-        <input type="text" id="searchInput" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; box-sizing: border-box; font-size: 16px;" onkeyup="filterTable()" placeholder="Cerca atleta...">
-        <button class="btn" style="background: #5f6368; font-size: 0.9rem;" onclick="toggleSelectAll()">Seleziona/Deseleziona Tutti</button>
+    <div class="top-controls">
+        <input type="text" id="searchInput" class="search-box" onkeyup="filterTable()" placeholder="Cerca atleta o categoria...">
+        <button class="btn btn-gray" onclick="toggleSelectAll()">Seleziona / Deseleziona Tutti</button>
     </div>
 
     <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
-                    <th style="width: 40px;">Sel.</th>
+                    <th style="width: 50px;">Sel.</th>
                     <th style="width: 30%;">Atleta</th>
                     <th>Categoria</th>
-                    <th>Sì</th>
-                    <th>No</th>
+                    <th>Partecipo</th>
+                    <th>Non Partecipo</th>
                     <th>Reset</th>
                     <th>Blocco</th>
                 </tr>
@@ -171,23 +179,29 @@
 </div>
 
 <script>
-    // Inserire qui le credenziali Supabase (URL e KEY) come nei messaggi precedenti
     const SUPABASE_URL = 'https://jnfnfszekfstuoiemkgf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuZm5mc3pla2ZzdHVvaWVta2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4ODkzOTEsImV4cCI6MjA4MzQ2NTM5MX0.lh7eRFlg7nnI7kEzVPBL9kNyZWX-XFeWQxVbvmzRlvA';
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const ADMIN_PASS = "vesmaco2024";
+    const ADMIN_PASS = "juvenilia1179";
 
     async function init() { caricaTitolo(); caricaTabella(); }
 
     async function caricaTitolo() {
         const { data } = await _supabase.from('configurazione').select('valore').eq('chiave', 'titolo_gara').single();
-        if (data) { document.getElementById('mainTitle').innerText = data.valore; document.getElementById('pageTitle').innerText = data.valore; }
+        if (data) { 
+            document.getElementById('mainTitle').innerText = data.valore; 
+            document.title = data.valore;
+        }
     }
 
     async function cambiaTitolo() {
-        if (prompt("Password:") === ADMIN_PASS) {
+        const pass = prompt("Password Amministratore:");
+        if (pass === ADMIN_PASS) {
             const nuovo = prompt("Nuovo Titolo:");
-            if (nuovo) { await _supabase.from('configurazione').update({ valore: nuovo }).eq('chiave', 'titolo_gara'); caricaTitolo(); }
+            if (nuovo) { 
+                await _supabase.from('configurazione').update({ valore: nuovo }).eq('chiave', 'titolo_gara');
+                caricaTitolo(); 
+            }
         }
     }
 
@@ -196,6 +210,7 @@
         if (error) return;
         const tbody = document.getElementById('tabella-body');
         tbody.innerHTML = '';
+
         data.forEach(p => {
             const tr = document.createElement('tr');
             if(p.bloccato) tr.classList.add('row-locked');
@@ -223,15 +238,19 @@
     async function bulkAction(deveBloccare) {
         const selezionati = Array.from(document.querySelectorAll('.atleta-checkbox:checked')).map(cb => cb.value);
         if (selezionati.length === 0) return alert("Seleziona almeno un atleta!");
-        if (prompt("Password:") === ADMIN_PASS) { await _supabase.from('presenze').update({ bloccato: deveBloccare }).in('id', selezionati); }
+        if (prompt("Password Amministratore:") === ADMIN_PASS) { await _supabase.from('presenze').update({ bloccato: deveBloccare }).in('id', selezionati); }
     }
 
     async function unlockEverything() {
-        if (prompt("Password sblocco totale:") === ADMIN_PASS) { await _supabase.from('presenze').update({ bloccato: false }).neq('id', 0); }
+        if (prompt("Password Sblocco Totale:") === ADMIN_PASS) { await _supabase.from('presenze').update({ bloccato: false }).neq('id', 0); }
     }
 
     async function resetTutti() {
-        if (prompt("Password Reset Totale:") === ADMIN_PASS) { await _supabase.from('presenze').update({ stato: 'vuoto' }).neq('id', 0); }
+        if (prompt("Password Reset Totale:") === ADMIN_PASS) {
+            if(confirm("Sei sicuro? Questo azzererà le risposte di TUTTI gli atleti.")) {
+                await _supabase.from('presenze').update({ stato: 'vuoto' }).neq('id', 0);
+            }
+        }
     }
 
     function toggleSelectAll() {
@@ -246,7 +265,16 @@
         for (let row of rows) row.style.display = row.innerText.toUpperCase().includes(input) ? "" : "none";
     }
 
-    _supabase.channel('db-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'presenze' }, () => caricaTabella()).subscribe();
+    function exportToExcel() {
+        const table = document.getElementById("targetTable");
+        const wb = XLSX.utils.table_to_book(table, {sheet: "Presenze"});
+        XLSX.writeFile(wb, "Vesmaco_Race_Report.xlsx");
+    }
+
+    // Realtime Sync
+    _supabase.channel('any').on('postgres_changes', { event: '*', schema: 'public', table: 'presenze' }, () => caricaTabella()).subscribe();
+    _supabase.channel('config').on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'configurazione' }, () => caricaTitolo()).subscribe();
+
     init();
 </script>
 </body>
