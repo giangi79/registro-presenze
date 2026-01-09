@@ -192,7 +192,6 @@
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const ADMIN_PASS = "juvenilia1179";
     
-    // Tabelle database
     const T_DATA = 'presenze'; 
     const T_CONF = 'configurazione';
 
@@ -323,6 +322,9 @@
         document.getElementById('confirmedList').style.display = cSi > 0 ? 'block' : 'none';
         document.getElementById('count-si').innerText = cSi;
         document.getElementById('count-no').innerText = cNo;
+
+        // Riapplica il filtro dopo il render
+        filterTable();
     }
 
     async function assegnaData(id, tipo) {
@@ -447,7 +449,12 @@
     async function unlockEverything() { await _supabase.from(T_DATA).update({ bloccato: false }).neq('id', 0); caricaTabella(); }
     async function resetTutti() { if(confirm("Resettare tutte le scelte?")) { await _supabase.from(T_DATA).update({ stato: 'vuoto' }).neq('id', 0); caricaTabella(); } }
     async function eliminaAtleta(id, n) { if(confirm(`Eliminare ${n}?`)) { await _supabase.from(T_DATA).delete().eq('id', id); caricaTabella(); } }
-    function filterTable() { const s = document.getElementById("searchInput").value.toUpperCase(); document.querySelectorAll("#tabella-body tr").forEach(tr => tr.style.display = tr.innerText.toUpperCase().includes(s) ? "" : "none"); }
+    
+    function filterTable() { 
+        const s = document.getElementById("searchInput").value.toUpperCase(); 
+        document.querySelectorAll("#tabella-body tr").forEach(tr => tr.style.display = tr.innerText.toUpperCase().includes(s) ? "" : "none"); 
+    }
+
     function showToast(m) { const t = document.getElementById("toast"); t.innerText = m; t.className = "show"; setTimeout(() => t.className = "", 3000); }
     function logoutAdmin() { location.reload(); }
     function toggleDarkMode() { const t = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.body.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
