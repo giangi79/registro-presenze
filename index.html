@@ -42,8 +42,6 @@
         .admin-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
         .admin-row input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 6px; min-width: 180px; font-size: 14px; }
         .admin-row button { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
-        .btn-confirm-timer { background: var(--success) !important; font-size: 0.85rem; }
-        .btn-reset-timer { background: var(--danger) !important; font-size: 0.85rem; }
 
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-card { padding: 12px; border-radius: 8px; text-align: center; color: white; font-weight: bold; }
@@ -55,7 +53,7 @@
         .atleta-tag { display: inline-block; background: white; padding: 4px 10px; margin: 3px; border-radius: 20px; font-size: 0.85rem; border: 1px solid #ddd; }
         [data-theme="dark"] .atleta-tag { background: #333; color: white; border-color: #444; }
 
-        .search-box { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; font-size: 16px; }
+        .search-box { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; font-size: 16px; box-sizing: border-box; }
         .table-wrapper { width: 100%; max-height: 60vh; overflow-y: auto; border-radius: 8px; border: 1px solid #eee; }
         table { width: 100%; border-collapse: collapse; }
         thead th { background: var(--table-header); color: white; font-size: 0.70rem; position: sticky; top: 0; z-index: 10; padding: 12px 2px; text-transform: uppercase; }
@@ -116,8 +114,8 @@
         <div class="admin-row">
             <div style="font-size: 14px; font-weight: bold;">Scadenza Iscrizioni:</div>
             <input type="datetime-local" id="deadlineInput">
-            <button onclick="confermaScadenzaDB()" class="btn-confirm-timer">CONFERMA SCADENZA</button>
-            <button onclick="resetScadenzaDB()" class="btn-reset-timer">RESET SCADENZA</button>
+            <button onclick="confermaScadenzaDB()" style="background:var(--success);">CONFERMA SCADENZA</button>
+            <button onclick="resetScadenzaDB()" style="background:var(--danger);">RESET SCADENZA</button>
         </div>
     </div>
 
@@ -170,8 +168,21 @@
 
     async function init() {
         if(localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+        
         await caricaConfig();
         await caricaTabella();
+
+        // --- ATTIVAZIONE REALTIME ---
+        // Ogni volta che succede qualcosa nella tabella 'presenze', ricarichiamo i dati
+        _supabase
+            .channel('db-changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'presenze' }, (payload) => {
+                caricaTabella(); 
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'configurazione' }, (payload) => {
+                caricaConfig();
+            })
+            .subscribe();
     }
 
     async function caricaConfig() {
@@ -251,13 +262,13 @@
         const v = document.getElementById('deadlineInput').value;
         if(!v) return alert("Inserisci una data!");
         const { error } = await _supabase.from('configurazione').upsert({ chiave: 'scadenza_adesioni', valore: v }, { onConflict: 'chiave' });
-        if(!error) { showToast("Timer Aggiornato!"); await caricaConfig(); caricaTabella(); }
+        if(!error) { showToast("Timer Aggiornato!"); }
     }
 
     async function resetScadenzaDB() {
         if(!confirm("Vuoi rimuovere il timer e riaprire le iscrizioni?")) return;
         const { error } = await _supabase.from('configurazione').upsert({ chiave: 'scadenza_adesioni', valore: "" }, { onConflict: 'chiave' });
-        if(!error) { showToast("Timer Rimosso!"); await caricaConfig(); caricaTabella(); }
+        if(!error) { showToast("Timer Rimosso!"); }
     }
 
     async function caricaTabella() {
@@ -266,6 +277,10 @@
         currentData = data;
         const tbody = document.getElementById('tabella-body');
         const listContent = document.getElementById('listContent');
+        
+        // Salviamo la posizione dello scroll per evitare che la tabella "salti" ad ogni aggiornamento
+        const currentScroll = document.querySelector('.table-wrapper').scrollTop;
+        
         tbody.innerHTML = '';
         listContent.innerHTML = '';
         
@@ -316,9 +331,19 @@
         
         document.getElementById('count-si').innerText = cSi;
         document.getElementById('count-no').innerText = cNo;
+        
+        document.querySelector('.table-wrapper').scrollTop = currentScroll;
+        filterTable(); // Mantieni eventuale filtro attivo
     }
 
     async function salva(id, val) { 
+        // Ottimizzazione Visiva: cambiamo il colore immediatamente prima della risposta del DB
+        const input = document.querySelector(`input[name="r_${id}"]`);
+        if (input) {
+            const tr = input.closest('tr');
+            tr.className = val === 'si' ? 'bg-si' : (val === 'no' ? 'bg-no' : '');
+        }
+
         const atleta = currentData.find(a => a.id == id);
         const { error } = await _supabase.from('presenze').update({ stato: val }).eq('id', id);
         if(!error) {
@@ -353,7 +378,6 @@
     async function salvaTitolo() { 
         const t = document.getElementById('editTitleInput').value;
         await _supabase.from('configurazione').upsert({ chiave: 'titolo_gara', valore: t }, { onConflict: 'chiave' });
-        document.getElementById('mainTitle').innerText = t;
         showToast("Titolo aggiornato");
     }
 
@@ -366,23 +390,32 @@
     }
 
     function selectAll(s) { document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = s.checked); }
+    
     async function bulkAction(l) { 
         const ids = Array.from(document.querySelectorAll('.bulk-cb:checked')).map(cb => cb.value);
         if (ids.length) await _supabase.from('presenze').update({ bloccato: l }).in('id', ids);
-        caricaTabella();
     }
-    async function toggleLock(id, cur) { await _supabase.from('presenze').update({ bloccato: !cur }).eq('id', id); caricaTabella(); }
-    async function eliminaAtleta(id, n) { if(confirm(`Eliminare ${n}?`)) { await _supabase.from('presenze').delete().eq('id', id); caricaTabella(); } }
-    async function resetTutti() { if(confirm("Resettare tutto?")) { await _supabase.from('presenze').update({ stato: 'vuoto' }).neq('id', 0); caricaTabella(); } }
-    async function unlockEverything() { await _supabase.from('presenze').update({ bloccato: false }).neq('id', 0); caricaTabella(); }
+    
+    async function toggleLock(id, cur) { await _supabase.from('presenze').update({ bloccato: !cur }).eq('id', id); }
+    async function eliminaAtleta(id, n) { if(confirm(`Eliminare ${n}?`)) { await _supabase.from('presenze').delete().eq('id', id); } }
+    async function resetTutti() { if(confirm("Resettare tutto?")) { await _supabase.from('presenze').update({ stato: 'vuoto' }).neq('id', 0); } }
+    async function unlockEverything() { await _supabase.from('presenze').update({ bloccato: false }).neq('id', 0); }
+    
     async function aggiungiAtleta() {
         const n = document.getElementById('newNome').value, c = document.getElementById('newCat').value;
-        if(n && c) { await _supabase.from('presenze').insert([{ nome: n, categoria: c, stato: 'vuoto' }]); document.getElementById('newNome').value = ""; caricaTabella(); }
+        if(n && c) { 
+            await _supabase.from('presenze').insert([{ nome: n, categoria: c, stato: 'vuoto' }]); 
+            document.getElementById('newNome').value = ""; 
+        }
     }
+
     function filterTable() {
         const s = document.getElementById("searchInput").value.toUpperCase();
-        document.querySelectorAll("#tabella-body tr").forEach(tr => { tr.style.display = tr.innerText.toUpperCase().includes(s) ? "" : "none"; });
+        document.querySelectorAll("#tabella-body tr").forEach(tr => { 
+            tr.style.display = tr.innerText.toUpperCase().includes(s) ? "" : "none"; 
+        });
     }
+
     function showToast(m) { const t = document.getElementById("toast"); t.innerText = m; t.className = "show"; setTimeout(() => t.className = "", 3000); }
     function logoutAdmin() { location.reload(); }
     function toggleDarkMode() { const t = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.body.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
