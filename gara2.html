@@ -323,7 +323,6 @@
         document.getElementById('count-si').innerText = cSi;
         document.getElementById('count-no').innerText = cNo;
 
-        // --- CORREZIONE: Riapplica il filtro dopo aver ridisegnato la tabella ---
         filterTable(); 
     }
 
@@ -459,7 +458,6 @@
     async function resetTutti() { if(confirm("Resettare tutte le scelte?")) { await _supabase.from(T_DATA).update({ stato: 'vuoto' }).neq('id', 0); caricaTabella(); } }
     async function eliminaAtleta(id, n) { if(confirm(`Eliminare ${n}?`)) { await _supabase.from(T_DATA).delete().eq('id', id); caricaTabella(); } }
     
-    // Funzione ricerca migliorata
     function filterTable() { 
         const s = document.getElementById("searchInput").value.toUpperCase(); 
         document.querySelectorAll("#tabella-body tr").forEach(tr => {
