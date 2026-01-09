@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gestione Presenze Juvenilia - Gara 2</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        :root { 
+            --primary: #1a73e8; --success: #28a745; --danger: #dc3545; 
+            --purple: #673ab7; --orange: #ff9800; --table-header: #2c3e50; 
+            --bg-body: #f0f2f5; --bg-card: #ffffff; --text-main: #333333;
+            --timer-bg: #e8f0fe;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #121212; --bg-card: #1e1e1e; --text-main: #e0e0e0;
+            --table-header: #000000; --primary: #8ab4f8; --timer-bg: #1a273a;
+        }
+
+        body { margin: 0; padding: 0; background-color: var(--bg-body); color: var(--text-main); font-family: 'Segoe UI', sans-serif; transition: 0.3s; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 15px; background: var(--bg-card); min-height: 100vh; }
+
+        .logo-container { text-align: center; margin-bottom: 20px; position: relative; min-height: 120px; display: flex; justify-content: center; align-items: center; }
+        .logo-container img { width: 220px; height: auto; border-radius: 8px; transition: 0.3s; }
+        
+        .top-btns { position: absolute; top: 0; right: 0; display: flex; gap: 8px; }
+        .icon-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 5px; }
+        .logout-btn { display: none; color: var(--danger); border: 1px solid var(--danger); border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 0.7rem; font-weight: bold; background: white; }
+        
+        h2 { text-align: center; color: var(--primary); margin: 10px 0; font-size: 1.3rem; text-transform: uppercase; }
+
+        .countdown-container { text-align: center; margin: 10px 0; padding: 15px; border-radius: 12px; background: var(--timer-bg); border: 2px solid var(--primary); transition: 0.5s; min-height: 60px; display: flex; align-items: center; justify-content: center; }
+        .timer { font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: bold; color: var(--primary); }
+
+        .row-flash-success { animation: flashSuccess 2s ease-out; }
+        @keyframes flashSuccess {
+            0% { background-color: transparent; }
+            20% { background-color: rgba(40, 167, 69, 0.2); }
+            100% { background-color: transparent; }
+        }
+
+        input[type="radio"] { display: none; }
+        .badge-btn {
+            display: inline-block; padding: 10px 12px; border-radius: 20px; border: 2px solid #ddd;
+            cursor: pointer; font-weight: bold; font-size: 0.75rem; transition: 0.2s;
+            user-select: none; width: 100%; box-sizing: border-box; text-align: center; background: white; color: #555;
+        }
+        [data-theme="dark"] .badge-btn { background: #333; color: #bbb; border-color: #444; }
+
+        input[value="si"]:checked + .badge-si { background-color: var(--success); color: white; border-color: #1e7e34; }
+        input[value="no"]:checked + .badge-no { background-color: var(--danger); color: white; border-color: #bd2130; }
+
+        #addAtletaBox { background: rgba(26, 115, 232, 0.08); border: 2px solid var(--primary); border-radius: 12px; padding: 20px; margin-bottom: 20px; display: none; flex-direction: column; gap: 15px; }
+        .admin-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        .admin-row input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 6px; min-width: 180px; font-size: 14px; }
+        .admin-row button { padding: 12px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-card { padding: 12px; border-radius: 8px; text-align: center; color: white; font-weight: bold; }
+        .stat-presenti { background: var(--success); }
+        .stat-assenti { background: var(--danger); }
+
+        #confirmedList { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-bottom: 20px; border-left: 5px solid var(--success); }
+        .cat-title { font-weight: bold; color: var(--success); border-bottom: 1px solid #ddd; margin: 10px 0 5px 0; font-size: 0.9rem; }
+        .atleta-tag { display: inline-block; background: white; padding: 4px 10px; margin: 3px; border-radius: 20px; font-size: 0.85rem; border: 1px solid #ddd; }
+        [data-theme="dark"] .atleta-tag { background: #333; color: white; border-color: #444; }
+
+        .search-box { position: sticky; top: 0; z-index: 100; width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; font-size: 16px; box-sizing: border-box; background: var(--bg-card); }
+        .table-wrapper { width: 100%; max-height: 60vh; overflow-y: auto; border-radius: 8px; border: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; }
+        thead th { background: var(--table-header); color: white; font-size: 0.70rem; position: sticky; top: 0; z-index: 10; padding: 12px 2px; text-transform: uppercase; }
+        td { padding: 10px 2px; border-bottom: 1px solid #eee; text-align: center; }
+        .nome-cell { text-align: left; font-weight: bold; padding-left: 10px !important; }
+        
+        .col-admin { display: none; }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 5px; }
+        #adminButtons { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+        #adminButtons button { padding: 12px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; }
+
+        #toast { visibility: hidden; min-width: 200px; background: #333; color: #fff; text-align: center; border-radius: 50px; padding: 12px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+
+        @media screen and (max-width: 600px) {
+            thead { display: none; }
+            td { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 10px 15px; }
+            td::before { content: attr(data-label); font-weight: bold; font-size: 0.70rem; color: #777; }
+            .nome-cell { background: rgba(0,0,0,0.03); justify-content: center; font-size: 1.0rem; }
+            .logo-container img { width: 180px; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="toast">Operazione riuscita!</div>
+
+<div class="container">
+    <div class="logo-container">
+        <div class="top-btns">
+            <button class="logout-btn" id="logoutBtn" onclick="logoutAdmin()">LOGOUT</button>
+            <button class="icon-btn" onclick="toggleDarkMode()">🌓</button>
+            <button class="icon-btn" id="adminIcon" onclick="toggleAdmin()">⚙️</button>
+        </div>
+        <img src="logo.png" alt="Logo Juvenilia" onerror="this.style.display='none'">
+    </div>
+
+    <h2 id="mainTitle">Sincronizzazione Gara 2...</h2>
+    
+    <div id="countdownBox" class="countdown-container">
+        <div id="timerDisplay" class="timer">Inizializzazione...</div>
+    </div>
+
+    <div id="addAtletaBox">
+        <div class="admin-row">
+            <input type="text" id="editTitleInput" placeholder="Titolo Gara 2">
+            <button onclick="salvaTitolo()" style="background:var(--purple);">Aggiorna Titolo</button>
+        </div>
+        <div class="admin-row">
+            <input type="text" id="newNome" placeholder="Cognome e Nome">
+            <input type="text" id="newCat" placeholder="Categoria">
+            <button onclick="aggiungiAtleta()" style="background:var(--primary);">+ Aggiungi</button>
+        </div>
+        <div class="admin-row">
+            <input type="datetime-local" id="deadlineInput">
+            <button onclick="confermaScadenzaDB()" style="background:var(--success);">CONFERMA SCADENZA</button>
+            <button onclick="resetScadenzaDB()" style="background:var(--danger);">RESET</button>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card stat-presenti"><span>✅ PARTECIPA</span><div id="count-si">0</div></div>
+        <div class="stat-card stat-assenti"><span>❌ NON PARTECIPA</span><div id="count-no">0</div></div>
+    </div>
+
+    <div id="confirmedList" style="display:none;"><div id="listContent"></div></div>
+    
+    <input type="text" id="searchInput" class="search-box" onkeyup="filterTable()" placeholder="🔍 Cerca il tuo nome...">
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-admin"><input type="checkbox" onclick="selectAll(this)"></th>
+                    <th>Atleta</th>
+                    <th>Categoria</th>
+                    <th>Partecipa</th>
+                    <th>Non Partecipa</th>
+                    <th>Reset</th>
+                    <th class="col-admin">Azioni</th>
+                </tr>
+            </thead>
+            <tbody id="tabella-body"></tbody>
+        </table>
+    </div>
+
+    <div id="adminButtons">
+        <button onclick="exportToExcel()" style="background:var(--success)">📊 Esporta Excel</button>
+        <button onclick="resetTutti()" style="background:var(--danger)">🔄 Reset Scelte</button>
+        <button onclick="inviaRiepilogoTelegram()" style="background:var(--primary); grid-column: span 2;">📢 Invia Riepilogo Telegram</button>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://jnfnfszekfstuoiemkgf.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuZm5mc3pla2ZzdHVvaWVta2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4ODkzOTEsImV4cCI6MjA4MzQ2NTM5MX0.lh7eRFlg7nnI7kEzVPBL9kNyZWX-XFeWQxVbvmzRlvA';
+    const TELEGRAM_TOKEN = '8441085660:AAEui_yfGnT_quKPHVx_wsslcuJtm3KbTOI';
+    const TELEGRAM_CHAT_ID = '691756250';
+    
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const ADMIN_PASS = "juvenilia1179";
+    
+    // --- NOMI TABELLE SPECIFICI PER GARA 2 ---
+    const T_DATA = 'gara2';
+    const T_CONF = 'config_gara2';
+
+    let isAdmin = false, isExpired = false, currentData = [], currentConfig = {}, timerInterval;
+
+    async function init() {
+        if(localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+        await fullLoad();
+        setInterval(async () => { await fullLoad(); }, 3000);
+    }
+
+    async function fullLoad() {
+        // Carica Config
+        const { data: conf } = await _supabase.from(T_CONF).select('*');
+        if(conf) {
+            const tit = conf.find(c => c.chiave === 'titolo_gara');
+            const sca = conf.find(c => c.chiave === 'scadenza_adesioni');
+            document.getElementById('mainTitle').innerText = tit?.valore || "Gara 2";
+            if(sca?.valore) startCountdown(sca.valore);
+            else { isExpired = false; document.getElementById('timerDisplay').innerText = "TERMINE DA DEFINIRE"; }
+        }
+        // Carica Tabella
+        const { data } = await _supabase.from(T_DATA).select('*').order('nome');
+        if(data && JSON.stringify(currentData) !== JSON.stringify(data)) {
+            currentData = data; renderData();
+        }
+    }
+
+    function startCountdown(endTime) {
+        if(timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            const distance = new Date(endTime).getTime() - new Date().getTime();
+            if (distance <= 0) {
+                clearInterval(timerInterval); isExpired = true;
+                document.getElementById('timerDisplay').innerText = "ISCRIZIONI CHIUSE";
+                return;
+            }
+            const d = Math.floor(distance / 86400000), h = Math.floor((distance % 86400000) / 3600000), m = Math.floor((distance % 3600000) / 60000), s = Math.floor((distance % 60000) / 1000);
+            document.getElementById('timerDisplay').innerText = `SCADENZA: ${d}g ${h}h ${m}m ${s}s`;
+        }, 1000);
+    }
+
+    function renderData() {
+        const tbody = document.getElementById('tabella-body');
+        const listContent = document.getElementById('listContent');
+        tbody.innerHTML = ''; listContent.innerHTML = '';
+        let cSi = 0, cNo = 0, partPerCat = {};
+
+        currentData.forEach(p => {
+            if (p.bloccato && !isAdmin) return;
+            if(p.stato === 'si') {
+                cSi++;
+                if(!partPerCat[p.categoria]) partPerCat[p.categoria] = [];
+                partPerCat[p.categoria].push(p.nome);
+            }
+            if(p.stato === 'no') cNo++;
+
+            const tr = document.createElement('tr');
+            tr.id = `row-${p.id}`;
+            if(p.stato === 'si') tr.className = 'bg-si';
+            if(p.stato === 'no') tr.className = 'bg-no';
+            
+            const disabled = isExpired && !isAdmin ? 'disabled' : '';
+            const displayAdmin = isAdmin ? 'table-cell' : 'none';
+
+            tr.innerHTML = `
+                <td class="col-admin" style="display:${displayAdmin}"><input type="checkbox" class="bulk-cb" value="${p.id}"></td>
+                <td class="nome-cell">${p.nome}</td>
+                <td data-label="Categoria">${p.categoria}</td>
+                <td data-label="Partecipa">
+                    <label>
+                        <input type="radio" name="r_${p.id}" value="si" ${p.stato==='si'?'checked':''} ${disabled} onclick="salva('${p.id}','si')">
+                        <span class="badge-btn badge-si">PARTECIPA</span>
+                    </label>
+                </td>
+                <td data-label="Non Partecipa">
+                    <label>
+                        <input type="radio" name="r_${p.id}" value="no" ${p.stato==='no'?'checked':''} ${disabled} onclick="salva('${p.id}','no')">
+                        <span class="badge-btn badge-no">NON PARTECIPA</span>
+                    </label>
+                </td>
+                <td><button class="action-btn" onclick="salva('${p.id}','vuoto')" ${disabled}>🔄</button></td>
+                <td class="col-admin" style="display:${displayAdmin}">
+                    <button class="action-btn" onclick="eliminaAtleta('${p.id}')">🗑️</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        Object.keys(partPerCat).sort().forEach(cat => {
+            listContent.innerHTML += `<div class="cat-title">${cat}</div>`;
+            partPerCat[cat].forEach(n => listContent.innerHTML += `<span class="atleta-tag">${n}</span>`);
+        });
+        
+        document.getElementById('count-si').innerText = cSi;
+        document.getElementById('count-no').innerText = cNo;
+        document.getElementById('confirmedList').style.display = cSi > 0 ? 'block' : 'none';
+    }
+
+    async function salva(id, val) { 
+        const { error } = await _supabase.from(T_DATA).update({ stato: val }).eq('id', id);
+        if(!error) {
+            showToast("Salvato");
+            if (val !== 'vuoto') {
+                const atleta = currentData.find(a => a.id == id);
+                inviaTelegram(atleta.nome, val, document.getElementById('mainTitle').innerText);
+            }
+            await fullLoad(); 
+        }
+    }
+
+    async function inviaTelegram(nome, scelta, gara) {
+        const emoji = scelta === 'si' ? '✅ PARTECIPA' : '❌ NON PARTECIPA';
+        const testo = `🏆 *Gara 2:* ${gara}\n👤 *Atleta:* ${nome}\n📝 *Scelta:* ${emoji}`;
+        fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: testo, parse_mode: 'Markdown' }) });
+    }
+
+    function toggleAdmin() {
+        if (prompt("Password:") === ADMIN_PASS) {
+            isAdmin = true;
+            document.getElementById('addAtletaBox').style.display = 'flex';
+            document.getElementById('adminButtons').style.display = 'grid';
+            document.querySelectorAll('.col-admin').forEach(el => el.style.display = 'table-cell');
+            renderData();
+        }
+    }
+
+    async function salvaTitolo() { 
+        const t = document.getElementById('editTitleInput').value;
+        await _supabase.from(T_CONF).upsert({ chiave: 'titolo_gara', valore: t }, { onConflict: 'chiave' });
+        showToast("Titolo Aggiornato");
+    }
+
+    async function confermaScadenzaDB() {
+        const v = document.getElementById('deadlineInput').value;
+        await _supabase.from(T_CONF).upsert({ chiave: 'scadenza_adesioni', valore: v }, { onConflict: 'chiave' });
+        showToast("Scadenza impostata");
+    }
+
+    async function resetTutti() { if(confirm("Resettare Gara 2?")) { await _supabase.from(T_DATA).update({ stato: 'vuoto' }).neq('id', 0); fullLoad(); } }
+    function showToast(m) { const t = document.getElementById("toast"); t.innerText = m; t.className = "show"; setTimeout(() => t.className = "", 3000); }
+    function filterTable() {
+        const s = document.getElementById("searchInput").value.toUpperCase();
+        document.querySelectorAll("#tabella-body tr").forEach(tr => { tr.style.display = tr.innerText.toUpperCase().includes(s) ? "" : "none"; });
+    }
+
+    init();
+</script>
+</body>
+</html>
