@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Gestione Presenze Juvenilia</title>
+    <title>Gestione Presenze Juvenilia - Gara 2</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
@@ -46,9 +46,15 @@
         input[value="si"]:checked + .badge-si { background-color: var(--success); color: white; border-color: #1e7e34; }
         input[value="no"]:checked + .badge-no { background-color: var(--danger); color: white; border-color: #bd2130; }
 
-        .btn-reset { background-color: #6c757d; color: white; border: none; padding: 8px 12px; border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.70rem; width: 100%; }
+        .btn-reset {
+            background-color: #6c757d; color: white; border: none; padding: 8px 12px;
+            border-radius: 20px; cursor: pointer; font-weight: bold; font-size: 0.70rem; width: 100%;
+        }
 
-        .admin-action-btn { background: none; border: none; cursor: pointer; padding: 5px; border-radius: 50%; transition: transform 0.2s, background 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+        .admin-action-btn {
+            background: none; border: none; cursor: pointer; padding: 5px; border-radius: 50%;
+            transition: transform 0.2s, background 0.2s; display: inline-flex; align-items: center; justify-content: center;
+        }
         .admin-action-btn:hover { transform: scale(1.2); background: rgba(0,0,0,0.05); }
         .btn-lock { color: var(--primary); }
         .btn-lock.locked { color: var(--orange); }
@@ -117,7 +123,7 @@
     <h2 id="mainTitle">Sincronizzazione...</h2>
     
     <div id="countdownBox" class="countdown-container">
-        <div id="timerDisplay" class="timer">Inizializzazione...</div>
+        <div id="timerDisplay" class="timer">Caricamento...</div>
     </div>
 
     <div id="addAtletaBox">
@@ -209,8 +215,7 @@
     const ADMIN_PASS = "juvenilia1179";
     
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const T_DATA = 'presenze'; 
-    const T_CONF = 'configurazione';
+    const T_DATA = 'gara2', T_CONF = 'config_gara2';
 
     let isAdmin = false, isExpired = false, currentData = [], timerInterval;
     let labelA = "", labelB = "", labelC = "", sortBy = 'nome'; 
@@ -249,7 +254,7 @@
             costiCategorie[c.chiave.replace('costo_', '').toUpperCase()] = parseFloat(c.valore) || 0;
         });
 
-        document.getElementById('mainTitle').innerText = tit?.valore || "Gara Juvenilia";
+        document.getElementById('mainTitle').innerText = tit?.valore || "Gara 2";
 
         if(sca?.valore) {
             const diff = new Date(sca.valore).getTime() - new Date().getTime();
@@ -258,7 +263,7 @@
         } else {
             isExpired = false;
             if(timerInterval) clearInterval(timerInterval);
-            document.getElementById('timerDisplay').innerText = "TERMINE DA DEFINIRE";
+            document.getElementById('timerDisplay').innerText = "TIMER DA DEFINIRE";
         }
         
         if(isAdmin && !isEditingCosti) renderCostiInputs();
@@ -284,6 +289,20 @@
         });
     }
 
+    async function eliminaTutteLeQuoteDB() {
+        if(confirm("ATTENZIONE: Stai per ELIMINARE DEFINITIVAMENTE tutte le quote salvate nel database. Questa operazione non è reversibile. Confermi?")) {
+            const chiaviDaEliminare = Object.keys(costiCategorie).map(c => `costo_${c}`);
+            if(chiaviDaEliminare.length > 0) {
+                await _supabase.from(T_CONF).delete().in('chiave', chiaviDaEliminare);
+                costiCategorie = {};
+                showToast("Database Costi Svuotato");
+                await caricaConfig();
+            } else {
+                showToast("Nessuna quota presente nel database.");
+            }
+        }
+    }
+
     async function salvaCosti() {
         isEditingCosti = false;
         const upserts = Array.from(document.querySelectorAll('.costo-in')).map(i => ({
@@ -291,18 +310,8 @@
             valore: i.value
         }));
         await _supabase.from(T_CONF).upsert(upserts, { onConflict: 'chiave' });
-        showToast("Quote salvate!"); 
+        showToast("Quote salvate con successo!"); 
         await caricaConfig();
-    }
-
-    async function eliminaTutteLeQuoteDB() {
-        if(confirm("Eliminare tutte le quote dal database?")) {
-            const keys = Object.keys(costiCategorie).map(c => `costo_${c}`);
-            if(keys.length) await _supabase.from(T_CONF).delete().in('chiave', keys);
-            costiCategorie = {};
-            showToast("Database Costi Svuotato");
-            await caricaConfig();
-        }
     }
 
     function toggleSort() {
@@ -370,10 +379,10 @@
                 </td>
                 <td data-label="Reset"><button class="btn-reset" onclick="salva('${p.id}','vuoto')" ${disabled}>Reset</button></td>
                 <td class="col-admin" style="display:${displayAdmin}">
-                    <button class="admin-action-btn btn-lock ${p.bloccato?'locked':''}" onclick="toggleLock('${p.id}', ${p.bloccato})">
+                    <button class="admin-action-btn btn-lock ${p.bloccato?'locked':''}" onclick="toggleLock('${p.id}', ${p.bloccato})" title="Blocca/Sblocca">
                         ${lockIcon}
                     </button>
-                    <button class="admin-action-btn btn-delete" onclick="eliminaAtleta('${p.id}','${p.nome}')">
+                    <button class="admin-action-btn btn-delete" onclick="eliminaAtleta('${p.id}','${p.nome}')" title="Elimina Atleta">
                         ${deleteIcon}
                     </button>
                 </td>
@@ -494,7 +503,8 @@
     async function salvaEtichetteDate() { 
         const a = document.getElementById('dateA_Label').value, b = document.getElementById('dateB_Label').value, c = document.getElementById('dateC_Label').value; 
         await _supabase.from(T_CONF).upsert([{ chiave: 'data_label_a', valore: a }, { chiave: 'data_label_b', valore: b }, { chiave: 'data_label_c', valore: c }], { onConflict: 'chiave' }); 
-        showToast("Etichette salvate!"); caricaConfig(); 
+        showToast("Etichette salvate!"); 
+        caricaConfig(); 
     }
 
     async function azzeraEtichetteDate() {
@@ -504,7 +514,8 @@
                 { chiave: 'data_label_b', valore: "" }, 
                 { chiave: 'data_label_c', valore: "" }
             ], { onConflict: 'chiave' });
-            showToast("Etichette azzerate!"); caricaConfig();
+            showToast("Etichette azzerate!");
+            caricaConfig();
         }
     }
 
