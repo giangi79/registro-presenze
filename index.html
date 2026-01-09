@@ -23,7 +23,7 @@
         .container { max-width: 1000px; margin: 0 auto; padding: 15px; background: var(--bg-card); min-height: 100vh; }
 
         .logo-container { text-align: center; margin-bottom: 10px; position: relative; min-height: 80px; }
-        .logo-container img { width: 140px; height: auto; }
+        .logo-container img { width: 140px; height: auto; border-radius: 8px; }
         .top-btns { position: absolute; top: 0; right: 0; display: flex; gap: 8px; }
         .icon-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 5px; }
         .logout-btn { display: none; color: var(--danger); border: 1px solid var(--danger); border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 0.7rem; font-weight: bold; background: white; }
@@ -91,7 +91,7 @@
             <button class="icon-btn" onclick="toggleDarkMode()">🌓</button>
             <button class="icon-btn" id="adminIcon" onclick="toggleAdmin()">⚙️</button>
         </div>
-        <img src="logo.png" alt="Logo Juvenilia">
+        <img src="logo.png" alt="Logo Juvenilia" onerror="this.style.display='none'">
     </div>
 
     <h2 id="mainTitle">Caricamento...</h2>
@@ -130,7 +130,7 @@
 
     <div class="table-wrapper">
         <table>
-            <thead id="tabella-head">
+            <thead>
                 <tr>
                     <th class="col-admin">Sel.</th>
                     <th>Atleta</th>
@@ -157,8 +157,8 @@
     // --- CONFIGURAZIONE ---
     const SUPABASE_URL = 'https://jnfnfszekfstuoiemkgf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuZm5mc3pla2ZzdHVvaWVta2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4ODkzOTEsImV4cCI6MjA4MzQ2NTM5MX0.lh7eRFlg7nnI7kEzVPBL9kNyZWX-XFeWQxVbvmzRlvA';
-    const TELEGRAM_TOKEN = '8441085660:AAEui_yfGnT_quKPHVx_wsslcuJtm3KbTOI'; // <--- INSERISCI QUI IL TOKEN
-    const TELEGRAM_CHAT_ID = '691756250'; // <--- INSERISCI QUI IL TUO CHAT ID
+    const TELEGRAM_TOKEN = '8441085660:AAEui_yfGnT_quKPHVx_wsslcuJtm3KbTOI';
+    const TELEGRAM_CHAT_ID = '691756250';
     
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const ADMIN_PASS = "juvenilia1179";
@@ -249,7 +249,6 @@
     }
 
     async function inviaTelegram(nome, scelta, gara) {
-        if(TELEGRAM_TOKEN === 'IL_TUO_BOT_TOKEN') return;
         const emoji = scelta === 'si' ? '✅ PARTECIPA' : '❌ NON PARTECIPA';
         const testo = `🏆 *Gara:* ${gara}\n👤 *Atleta:* ${nome}\n📝 *Scelta:* ${emoji}`;
         try {
@@ -273,6 +272,25 @@
             caricaTabella();
             showToast("Admin Sbloccato 🔓");
         }
+    }
+
+    async function bulkAction(lock) {
+        const selectedIds = Array.from(document.querySelectorAll('.bulk-cb:checked')).map(cb => cb.value);
+        if (selectedIds.length === 0) return alert("Seleziona almeno un atleta");
+        const { error } = await _supabase.from('presenze').update({ bloccato: lock }).in('id', selectedIds);
+        if(!error) { showToast(`${selectedIds.length} atleti aggiornati`); caricaTabella(); }
+    }
+
+    async function exportToExcel() {
+        const dataToExport = currentData.map(p => ({
+            Atleta: p.nome,
+            Categoria: p.categoria,
+            Stato: p.stato === 'si' ? 'PARTECIPA' : (p.stato === 'no' ? 'NON PARTECIPA' : 'NON DICHIARATO')
+        }));
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Presenze");
+        XLSX.writeFile(workbook, `Presenze_Juvenilia.xlsx`);
     }
 
     async function toggleLock(id, cur) { await _supabase.from('presenze').update({ bloccato: !cur }).eq('id', id); }
