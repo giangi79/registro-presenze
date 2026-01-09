@@ -35,6 +35,17 @@
         .countdown-container { text-align: center; margin: 10px 0; padding: 15px; border-radius: 12px; background: var(--timer-bg); border: 2px solid var(--primary); transition: 0.5s; min-height: 60px; display: flex; align-items: center; justify-content: center; }
         .timer { font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: bold; color: var(--primary); }
 
+        input[type="radio"] { display: none; }
+        .badge-btn {
+            display: inline-block; padding: 10px 12px; border-radius: 20px; border: 2px solid #ddd;
+            cursor: pointer; font-weight: bold; font-size: 0.75rem; transition: 0.2s;
+            user-select: none; width: 100%; box-sizing: border-box; text-align: center; background: white; color: #555;
+        }
+        [data-theme="dark"] .badge-btn { background: #333; color: #bbb; border-color: #444; }
+
+        input[value="si"]:checked + .badge-si { background-color: var(--success); color: white; border-color: #1e7e34; }
+        input[value="no"]:checked + .badge-no { background-color: var(--danger); color: white; border-color: #bd2130; }
+
         #addAtletaBox { background: rgba(26, 115, 232, 0.08); border: 2px solid var(--primary); border-radius: 12px; padding: 20px; margin-bottom: 20px; display: none; flex-direction: column; gap: 15px; }
         .admin-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
         .admin-row input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 6px; min-width: 180px; font-size: 14px; }
@@ -45,29 +56,36 @@
         .stat-presenti { background: var(--success); }
         .stat-assenti { background: var(--danger); }
 
-        input[type="radio"] { display: none; }
-        .badge-btn { display: inline-block; padding: 10px 12px; border-radius: 20px; border: 2px solid #ddd; cursor: pointer; font-weight: bold; font-size: 0.75rem; width: 100%; box-sizing: border-box; text-align: center; background: white; color: #555; }
-        input[value="si"]:checked + .badge-si { background-color: var(--success); color: white; border-color: #1e7e34; }
-        input[value="no"]:checked + .badge-no { background-color: var(--danger); color: white; border-color: #bd2130; }
+        #confirmedList { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-bottom: 20px; border-left: 5px solid var(--success); }
+        .cat-title { font-weight: bold; color: var(--success); border-bottom: 1px solid #ddd; margin: 10px 0 5px 0; font-size: 0.9rem; }
+        .atleta-tag { display: inline-block; background: white; padding: 4px 10px; margin: 3px; border-radius: 20px; font-size: 0.85rem; border: 1px solid #ddd; }
+        [data-theme="dark"] .atleta-tag { background: #333; color: white; border-color: #444; }
 
-        .search-box { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; font-size: 16px; box-sizing: border-box; }
-        .table-wrapper { width: 100%; max-height: 60vh; overflow-y: auto; }
+        .search-box { position: sticky; top: 0; z-index: 100; width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; font-size: 16px; box-sizing: border-box; background: var(--bg-card); }
+        .table-wrapper { width: 100%; max-height: 60vh; overflow-y: auto; border-radius: 8px; border: 1px solid #eee; }
         table { width: 100%; border-collapse: collapse; }
-        thead th { background: var(--table-header); color: white; padding: 12px 2px; position: sticky; top: 0; }
+        thead th { background: var(--table-header); color: white; font-size: 0.70rem; position: sticky; top: 0; z-index: 10; padding: 12px 2px; text-transform: uppercase; }
         td { padding: 10px 2px; border-bottom: 1px solid #eee; text-align: center; }
         .nome-cell { text-align: left; font-weight: bold; padding-left: 10px !important; }
+        
+        .bg-si { background-color: rgba(40, 167, 69, 0.05) !important; }
+        .bg-no { background-color: rgba(220, 53, 69, 0.05) !important; }
+
+        .col-admin { display: none; }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 5px; }
+        #adminButtons { display: none; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+        #adminButtons button { padding: 12px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; }
 
         #toast { visibility: hidden; min-width: 200px; background: #333; color: #fff; text-align: center; border-radius: 50px; padding: 12px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); }
         #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
-        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
-        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
 
         @media screen and (max-width: 600px) {
             thead { display: none; }
             td { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 10px 15px; }
-            td::before { content: attr(data-label); font-weight: bold; color: #777; font-size: 0.7rem; }
-            .nome-cell { background: rgba(0,0,0,0.03); justify-content: center; }
+            td::before { content: attr(data-label); font-weight: bold; font-size: 0.70rem; color: #777; }
+            .nome-cell { background: rgba(0,0,0,0.03); justify-content: center; font-size: 1.0rem; }
             .nome-cell::before { display: none; }
+            .logo-container img { width: 180px; }
         }
     </style>
 </head>
@@ -78,14 +96,14 @@
 <div class="container">
     <div class="logo-container">
         <div class="top-btns">
-            <button class="logout-btn" id="logoutBtn" onclick="location.reload()">LOGOUT</button>
+            <button class="logout-btn" id="logoutBtn" onclick="logoutAdmin()">LOGOUT</button>
             <button class="icon-btn" onclick="toggleDarkMode()">🌓</button>
             <button class="icon-btn" id="adminIcon" onclick="toggleAdmin()">⚙️</button>
         </div>
         <img src="logo.png" alt="Logo Juvenilia" onerror="this.style.display='none'">
     </div>
 
-    <h2 id="mainTitle">Caricamento...</h2>
+    <h2 id="mainTitle">Sincronizzazione Gara 2...</h2>
     
     <div id="countdownBox" class="countdown-container">
         <div id="timerDisplay" class="timer">Inizializzazione...</div>
@@ -93,17 +111,22 @@
 
     <div id="addAtletaBox">
         <div class="admin-row">
-            <input type="text" id="editTitleInput" placeholder="Nuovo Titolo Gara">
+            <input type="text" id="editTitleInput" placeholder="Titolo della gara 2...">
             <button onclick="salvaTitolo()" style="background:var(--purple);">Aggiorna Titolo</button>
         </div>
         <div class="admin-row">
             <input type="text" id="newNome" placeholder="Cognome e Nome">
             <input type="text" id="newCat" placeholder="Categoria">
-            <button onclick="aggiungiAtleta()" style="background:var(--primary);">+ Aggiungi</button>
+            <button onclick="aggiungiAtleta()" style="background:var(--primary);">+ Aggiungi Atleta</button>
         </div>
         <div class="admin-row">
+            <div style="font-size: 14px; font-weight: bold;">Scadenza:</div>
             <input type="datetime-local" id="deadlineInput">
             <button onclick="confermaScadenzaDB()" style="background:var(--success);">CONFERMA SCADENZA</button>
+            <button onclick="resetScadenzaDB()" style="background:var(--danger);">RESET</button>
+        </div>
+        <div class="admin-row">
+            <button id="btnSort" onclick="ordinaPerCategoria()" style="background:var(--table-header); width:100%;">📊 Ordina: A-Z Nomi</button>
         </div>
     </div>
 
@@ -112,35 +135,54 @@
         <div class="stat-card stat-assenti"><span>❌ NON PARTECIPA</span><div id="count-no">0</div></div>
     </div>
 
+    <div id="confirmedList" style="display:none;">
+        <div style="font-weight:bold; font-size:0.8rem; color:#555;">👥 PARTECIPANTI PER CATEGORIA:</div>
+        <div id="listContent"></div>
+    </div>
+    
     <input type="text" id="searchInput" class="search-box" onkeyup="filterTable()" placeholder="🔍 Cerca il tuo nome...">
 
     <div class="table-wrapper">
         <table>
             <thead>
                 <tr>
-                    <th class="col-admin">Admin</th>
+                    <th class="col-admin"><input type="checkbox" onclick="selectAll(this)"></th>
                     <th>Atleta</th>
                     <th>Categoria</th>
                     <th>Partecipa</th>
                     <th>Non Partecipa</th>
                     <th>Reset</th>
+                    <th class="col-admin">Azioni</th>
                 </tr>
             </thead>
             <tbody id="tabella-body"></tbody>
         </table>
+    </div>
+
+    <div id="adminButtons">
+        <button onclick="bulkAction(true)" style="background:var(--purple)">🔒 Nascondi Selezionati</button>
+        <button onclick="exportToExcel()" style="background:var(--success)">📊 Esporta Excel</button>
+        <button onclick="resetTutti()" style="background:var(--danger)">🔄 Reset Scelte</button>
+        <button onclick="unlockEverything()" style="background:var(--orange)">🔓 Mostra Tutti</button>
+        <button onclick="inviaRiepilogoTelegram()" style="background:var(--primary); grid-column: span 2;">📢 Invia Riepilogo Telegram</button>
     </div>
 </div>
 
 <script>
     const SUPABASE_URL = 'https://jnfnfszekfstuoiemkgf.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuZm5mc3pla2ZzdHVvaWVta2dmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc4ODkzOTEsImV4cCI6MjA4MzQ2NTM5MX0.lh7eRFlg7nnI7kEzVPBL9kNyZWX-XFeWQxVbvmzRlvA';
+    const TELEGRAM_TOKEN = '8441085660:AAEui_yfGnT_quKPHVx_wsslcuJtm3KbTOI';
+    const TELEGRAM_CHAT_ID = '691756250';
+    
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const ADMIN_PASS = "juvenilia1179";
     
     const T_DATA = 'gara2';
     const T_CONF = 'config_gara2';
-    const ADMIN_PASS = "juvenilia1179";
 
     let isAdmin = false, isExpired = false, currentData = [], timerInterval;
+    let sortByCat = false;
+    const customCatOrder = { "SENIOR": 1, "JUNIOR": 2, "ALLIEVI": 3, "RAGAZZI": 4, "R12": 5, "ESORDIENTI": 6, "GIOVANISSIMI": 7 };
 
     async function init() {
         if(localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
@@ -149,101 +191,209 @@
     }
 
     async function fullLoad() {
-        // Carica configurazione
-        const { data: conf } = await _supabase.from(T_CONF).select('*');
-        if(conf) {
-            const t = conf.find(c => c.chiave === 'titolo_gara');
-            const s = conf.find(c => c.chiave === 'scadenza_adesioni');
-            document.getElementById('mainTitle').innerText = t?.valore || "Gara 2";
-            if(s?.valore) startCountdown(s.valore);
-            else document.getElementById('timerDisplay').innerText = "NESSUNA SCADENZA";
-        }
-        // Carica dati
-        const { data } = await _supabase.from(T_DATA).select('*').order('nome');
-        if(data) { currentData = data; renderData(); }
+        await caricaConfig();
+        await caricaTabella();
+    }
+
+    async function caricaConfig() {
+        const { data } = await _supabase.from(T_CONF).select('*');
+        if(!data) return;
+        const tit = data.find(c => c.chiave === 'titolo_gara');
+        const sca = data.find(c => c.chiave === 'scadenza_adesioni');
+        document.getElementById('mainTitle').innerText = tit?.valore || "Gara 2";
+        if(sca?.valore) {
+            const diff = new Date(sca.valore).getTime() - new Date().getTime();
+            if(diff <= 0) { isExpired = true; mostraTimerChiuso(); }
+            else { isExpired = false; startCountdown(sca.valore); }
+        } else { isExpired = false; document.getElementById('timerDisplay').innerText = "DA DEFINIRE"; }
+    }
+
+    function mostraTimerChiuso() {
+        if(timerInterval) clearInterval(timerInterval);
+        const display = document.getElementById('timerDisplay');
+        display.innerText = "ISCRIZIONI CHIUSE";
+        display.style.color = "var(--danger)";
     }
 
     function startCountdown(endTime) {
         if(timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            const diff = new Date(endTime).getTime() - new Date().getTime();
-            if(diff <= 0) {
-                isExpired = true; clearInterval(timerInterval);
-                document.getElementById('timerDisplay').innerText = "ISCRIZIONI CHIUSE";
-                return;
-            }
-            const d = Math.floor(diff/86400000), h = Math.floor((diff%86400000)/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+            const distance = new Date(endTime).getTime() - new Date().getTime();
+            if (distance <= 0) { clearInterval(timerInterval); isExpired = true; mostraTimerChiuso(); return; }
+            const d = Math.floor(distance/86400000), h = Math.floor((distance%86400000)/3600000), m = Math.floor((distance%3600000)/60000), s = Math.floor((distance%60000)/1000);
             document.getElementById('timerDisplay').innerText = `SCADENZA: ${d}g ${h}h ${m}m ${s}s`;
         }, 1000);
     }
 
+    async function caricaTabella() {
+        const { data } = await _supabase.from(T_DATA).select('*');
+        if(data && JSON.stringify(currentData) !== JSON.stringify(data)) { 
+            currentData = data; 
+            renderData(); 
+        }
+    }
+
     function renderData() {
         const tbody = document.getElementById('tabella-body');
-        tbody.innerHTML = '';
-        let cSi = 0, cNo = 0;
-        currentData.forEach(p => {
-            if(p.stato === 'si') cSi++; else if(p.stato === 'no') cNo++;
+        const listContent = document.getElementById('listContent');
+        tbody.innerHTML = ''; listContent.innerHTML = '';
+        let cSi = 0, cNo = 0, partPerCat = {};
+
+        // Applichiamo l'ordinamento ai dati correnti
+        let displayData = [...currentData];
+        if (sortByCat) {
+            displayData.sort((a, b) => {
+                let orderA = customCatOrder[a.categoria.toUpperCase()] || 999;
+                let orderB = customCatOrder[b.categoria.toUpperCase()] || 999;
+                if (orderA !== orderB) return orderA - orderB;
+                return a.nome.localeCompare(b.nome);
+            });
+        } else {
+            displayData.sort((a, b) => a.nome.localeCompare(b.nome));
+        }
+
+        displayData.forEach(p => {
+            if (p.bloccato && !isAdmin) return;
+            if(p.stato === 'si') {
+                cSi++;
+                if(!partPerCat[p.categoria]) partPerCat[p.categoria] = [];
+                partPerCat[p.categoria].push(p.nome);
+            }
+            if(p.stato === 'no') cNo++;
+
             const tr = document.createElement('tr');
-            const dis = isExpired && !isAdmin ? 'disabled' : '';
+            tr.id = `row-${p.id}`;
+            if(p.stato === 'si') tr.className = 'bg-si';
+            if(p.stato === 'no') tr.className = 'bg-no';
+            
+            const disabled = isExpired && !isAdmin ? 'disabled' : '';
+            const displayAdmin = isAdmin ? 'table-cell' : 'none';
+
             tr.innerHTML = `
-                <td class="col-admin" style="display:${isAdmin?'table-cell':'none'}"><button onclick="elimina('${p.id}')">🗑️</button></td>
-                <td class="nome-cell">${p.nome}</td>
+                <td class="col-admin" style="display:${displayAdmin}"><input type="checkbox" class="bulk-cb" value="${p.id}"></td>
+                <td class="nome-cell">${p.nome}${p.bloccato ? ' 🔒' : ''}</td>
                 <td data-label="Categoria">${p.categoria}</td>
-                <td data-label="Partecipa"><label><input type="radio" name="r_${p.id}" ${p.stato==='si'?'checked':''} ${dis} onclick="salva('${p.id}','si')"><span class="badge-btn badge-si">partecipa</span></label></td>
-                <td data-label="Non Partecipa"><label><input type="radio" name="r_${p.id}" ${p.stato==='no'?'checked':''} ${dis} onclick="salva('${p.id}','no')"><span class="badge-btn badge-no">non partecipa</span></label></td>
-                <td><button onclick="salva('${p.id}','vuoto')" ${dis}>🔄</button></td>
+                <td data-label="Partecipa">
+                    <label>
+                        <input type="radio" name="r_${p.id}" value="si" ${p.stato==='si'?'checked':''} ${disabled} onclick="salva('${p.id}','si')">
+                        <span class="badge-btn badge-si">PARTECIPA</span>
+                    </label>
+                </td>
+                <td data-label="Non Partecipa">
+                    <label>
+                        <input type="radio" name="r_${p.id}" value="no" ${p.stato==='no'?'checked':''} ${disabled} onclick="salva('${p.id}','no')">
+                        <span class="badge-btn badge-no">NON PARTECIPA</span>
+                    </label>
+                </td>
+                <td data-label="Reset"><button class="action-btn" onclick="salva('${p.id}','vuoto')" ${disabled}>🔄</button></td>
+                <td class="col-admin" style="display:${displayAdmin}">
+                    <button class="action-btn" onclick="toggleLock('${p.id}', ${p.bloccato})">${p.bloccato?'🔒':'🔓'}</button>
+                    <button class="action-btn" onclick="eliminaAtleta('${p.id}','${p.nome}')">🗑️</button>
+                </td>
             `;
             tbody.appendChild(tr);
         });
+
+        // Generazione Lista Partecipanti per Categoria
+        Object.keys(partPerCat).sort((a,b) => (customCatOrder[a.toUpperCase()] || 999) - (customCatOrder[b.toUpperCase()] || 999)).forEach(cat => {
+            listContent.innerHTML += `<div class="cat-title">${cat}</div>`;
+            partPerCat[cat].sort().forEach(n => listContent.innerHTML += `<span class="atleta-tag">${n}</span>`);
+        });
+        
+        document.getElementById('confirmedList').style.display = cSi > 0 ? 'block' : 'none';
         document.getElementById('count-si').innerText = cSi;
         document.getElementById('count-no').innerText = cNo;
     }
 
-    async function salva(id, val) {
-        await _supabase.from(T_DATA).update({ stato: val }).eq('id', id);
-        showToast("Salvato");
-        fullLoad();
+    function ordinaPerCategoria() { 
+        sortByCat = !sortByCat; 
+        document.getElementById('btnSort').innerText = sortByCat ? "📊 Ordina: Per Categoria" : "📊 Ordina: A-Z Nomi";
+        renderData(); 
     }
 
-    // FUNZIONE AGGIORNAMENTO TITOLO (CORRETTA)
-    async function salvaTitolo() {
-        const nuovoTitolo = document.getElementById('editTitleInput').value;
-        if(!nuovoTitolo) return;
-        const { error } = await _supabase.from(T_CONF).upsert({ chiave: 'titolo_gara', valore: nuovoTitolo });
-        if(error) { console.error(error); alert("Errore: " + error.message); }
-        else { showToast("Titolo Aggiornato!"); fullLoad(); }
+    async function salva(id, val) { 
+        const atleta = currentData.find(a => a.id == id);
+        if (!isAdmin && !confirm(`Sei veramente ${atleta.nome}?`)) { renderData(); return; }
+        const { error } = await _supabase.from(T_DATA).update({ stato: val }).eq('id', id);
+        if(!error) {
+            showToast("Salvato");
+            if (val !== 'vuoto') inviaTelegram(atleta.nome, val, document.getElementById('mainTitle').innerText);
+            await caricaTabella(); 
+        }
     }
 
-    async function confermaScadenzaDB() {
-        const v = document.getElementById('deadlineInput').value;
-        await _supabase.from(T_CONF).upsert({ chiave: 'scadenza_adesioni', valore: v });
-        showToast("Scadenza Salvata");
-        fullLoad();
+    async function inviaTelegram(nome, scelta, gara) {
+        const emoji = scelta === 'si' ? '✅ PARTECIPA' : '❌ NON PARTECIPA';
+        const testo = `🏆 *Gara:* ${gara}\n👤 *Atleta:* ${nome}\n📝 *Scelta:* ${emoji}`;
+        fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: testo, parse_mode: 'Markdown' }) });
     }
 
-    async function aggiungiAtleta() {
-        const n = document.getElementById('newNome').value, c = document.getElementById('newCat').value;
-        if(n && c) { await _supabase.from(T_DATA).insert([{ nome: n, categoria: c, stato: 'vuoto' }]); fullLoad(); }
+    async function inviaRiepilogoTelegram() {
+        const gara = document.getElementById('mainTitle').innerText;
+        let pCat = {};
+        currentData.forEach(p => { if(p.stato === 'si') { if(!pCat[p.categoria]) pCat[p.categoria] = []; pCat[p.categoria].push(p.nome); } });
+        let msg = `📝 *RIEPILOGO ISCRIZIONI*\n🏆 *Evento:* ${gara}\n\n`;
+        Object.keys(pCat).sort((a,b) => (customCatOrder[a.toUpperCase()] || 999) - (customCatOrder[b.toUpperCase()] || 999)).forEach(c => {
+            msg += `*${c.toUpperCase()}:*\n`;
+            pCat[c].sort().forEach(n => { msg += `• ${n} (partecipa)\n`; });
+            msg += `\n`;
+        });
+        fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg, parse_mode: 'Markdown' }) });
+        showToast("Riepilogo inviato");
     }
-
-    async function elimina(id) { if(confirm("Eliminare?")) { await _supabase.from(T_DATA).delete().eq('id', id); fullLoad(); } }
 
     function toggleAdmin() {
-        if(prompt("Password:") === ADMIN_PASS) {
+        if (prompt("Password:") === ADMIN_PASS) {
             isAdmin = true;
             document.getElementById('adminIcon').style.display = 'none';
             document.getElementById('logoutBtn').style.display = 'block';
             document.getElementById('addAtletaBox').style.display = 'flex';
+            document.getElementById('adminButtons').style.display = 'grid';
+            document.querySelectorAll('.col-admin').forEach(el => el.style.display = 'table-cell');
             renderData();
         }
     }
 
-    function toggleDarkMode() { document.body.setAttribute('data-theme', document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'); }
-    function showToast(m) { const t = document.getElementById("toast"); t.innerText = m; t.className = "show"; setTimeout(() => t.className = "", 3000); }
-    function filterTable() {
-        const s = document.getElementById("searchInput").value.toUpperCase();
-        document.querySelectorAll("#tabella-body tr").forEach(tr => tr.style.display = tr.innerText.toUpperCase().includes(s) ? "" : "none");
+    async function salvaTitolo() { 
+        const t = document.getElementById('editTitleInput').value;
+        await _supabase.from(T_CONF).upsert({ chiave: 'titolo_gara', valore: t }, { onConflict: 'chiave' });
+        showToast("Titolo Aggiornato"); await caricaConfig();
     }
+
+    async function confermaScadenzaDB() {
+        const v = document.getElementById('deadlineInput').value;
+        await _supabase.from(T_CONF).upsert({ chiave: 'scadenza_adesioni', valore: v }, { onConflict: 'chiave' });
+        await caricaConfig();
+    }
+
+    async function resetScadenzaDB() {
+        await _supabase.from(T_CONF).upsert({ chiave: 'scadenza_adesioni', valore: "" }, { onConflict: 'chiave' });
+        await caricaConfig();
+    }
+
+    async function aggiungiAtleta() {
+        const n = document.getElementById('newNome').value, c = document.getElementById('newCat').value;
+        if(n && c) { await _supabase.from(T_DATA).insert([{ nome: n, categoria: c, stato: 'vuoto' }]); await caricaTabella(); }
+    }
+
+    async function exportToExcel() {
+        const dataExp = currentData.map(p => ({ Atleta: p.nome, Categoria: p.categoria, Stato: p.stato === 'si' ? 'PARTECIPA' : (p.stato === 'no' ? 'NON PARTECIPA' : 'NON DICHIARATO') }));
+        const ws = XLSX.utils.json_to_sheet(dataExp);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Gara2");
+        XLSX.writeFile(wb, `Presenze_Gara2.xlsx`);
+    }
+
+    function selectAll(s) { document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = s.checked); }
+    async function bulkAction(l) { const ids = Array.from(document.querySelectorAll('.bulk-cb:checked')).map(cb => cb.value); if (ids.length) { await _supabase.from(T_DATA).update({ bloccato: l }).in('id', ids); await caricaTabella(); } }
+    async function toggleLock(id, cur) { await _supabase.from(T_DATA).update({ bloccato: !cur }).eq('id', id); await caricaTabella(); }
+    async function eliminaAtleta(id, n) { if(confirm(`Eliminare ${n}?`)) { await _supabase.from(T_DATA).delete().eq('id', id); await caricaTabella(); } }
+    async function resetTutti() { if(confirm("Resettare tutto?")) { await _supabase.from(T_DATA).update({ stato: 'vuoto' }).neq('id', 0); await caricaTabella(); } }
+    async function unlockEverything() { await _supabase.from(T_DATA).update({ bloccato: false }).neq('id', 0); await caricaTabella(); }
+    function filterTable() { const s = document.getElementById("searchInput").value.toUpperCase(); document.querySelectorAll("#tabella-body tr").forEach(tr => tr.style.display = tr.innerText.toUpperCase().includes(s) ? "" : "none"); }
+    function showToast(m) { const t = document.getElementById("toast"); t.innerText = m; t.className = "show"; setTimeout(() => t.className = "", 3000); }
+    function logoutAdmin() { location.reload(); }
+    function toggleDarkMode() { const t = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.body.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
 
     init();
 </script>
