@@ -95,10 +95,10 @@
         <img src="logo.png" alt="Logo Juvenilia" onerror="this.style.display='none'">
     </div>
 
-    <h2 id="mainTitle">Caricamento...</h2>
+    <h2 id="mainTitle">Sincronizzazione...</h2>
     
     <div id="countdownBox" class="countdown-container">
-        <div id="timerDisplay" class="timer">Sincronizzazione...</div>
+        <div id="timerDisplay" class="timer">Inizializzazione...</div>
     </div>
 
     <div id="addAtletaBox">
@@ -164,31 +164,33 @@
     
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const ADMIN_PASS = "juvenilia1179";
-    let isAdmin = false, isExpired = false, currentData = [], timerInterval;
+    let isAdmin = false, isExpired = false, currentData = [], currentConfig = {}, timerInterval, refreshInterval;
 
     async function init() {
         if(localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
         
+        // Primo caricamento immediato
+        await fullLoad();
+
+        // --- FORZA AGGIORNAMENTO OGNI 2 SECONDI (2000ms) ---
+        refreshInterval = setInterval(async () => {
+            await fullLoad();
+        }, 2000);
+    }
+
+    async function fullLoad() {
         await caricaConfig();
         await caricaTabella();
-
-        // --- ATTIVAZIONE REALTIME ---
-        // Ogni volta che succede qualcosa nella tabella 'presenze', ricarichiamo i dati
-        _supabase
-            .channel('db-changes')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'presenze' }, (payload) => {
-                caricaTabella(); 
-            })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'configurazione' }, (payload) => {
-                caricaConfig();
-            })
-            .subscribe();
     }
 
     async function caricaConfig() {
         try {
             const { data, error } = await _supabase.from('configurazione').select('*');
-            if(error) throw error;
+            if(error) return;
+
+            // Evita di aggiornare se la configurazione è la stessa
+            if(JSON.stringify(currentConfig) === JSON.stringify(data)) return;
+            currentConfig = data;
 
             const titoloObj = data.find(c => c.chiave === 'titolo_gara');
             const scadenzaObj = data.find(c => c.chiave === 'scadenza_adesioni');
@@ -210,16 +212,13 @@
                 }
             } else {
                 isExpired = false;
-                document.getElementById('deadlineInput').value = "";
                 mostraStatoTimer("TERMINE DA DEFINIRE", "var(--primary)");
             }
-        } catch (e) {
-            mostraStatoTimer("ERRORE CONNESSIONE", "var(--danger)");
-        }
+        } catch (e) { console.log(e); }
     }
 
     function mostraStatoTimer(testo, colore) {
-        clearInterval(timerInterval);
+        if(timerInterval) clearInterval(timerInterval);
         const display = document.getElementById('timerDisplay');
         display.innerText = testo;
         display.style.color = colore;
@@ -227,10 +226,9 @@
     }
 
     function startCountdown(endTime) {
-        clearInterval(timerInterval);
+        if(timerInterval) clearInterval(timerInterval);
         const box = document.getElementById('countdownBox');
         const display = document.getElementById('timerDisplay');
-        display.style.color = "var(--primary)";
 
         timerInterval = setInterval(() => {
             const now = new Date().getTime();
@@ -242,7 +240,6 @@
                 display.innerText = "ISCRIZIONI CHIUSE";
                 display.style.color = "var(--danger)";
                 box.className = "countdown-container";
-                caricaTabella(); 
                 return;
             }
 
@@ -251,6 +248,7 @@
             const m = Math.floor((distance % 3600000) / 60000);
             const s = Math.floor((distance % 60000) / 1000);
             display.innerText = `SCADENZA: ${d}g ${h}h ${m}m ${s}s`;
+            display.style.color = "var(--primary)";
 
             if (distance < 10800000) box.className = "countdown-container timer-urgent";
             else if (distance < 86400000) box.className = "countdown-container timer-warning";
@@ -258,28 +256,18 @@
         }, 1000);
     }
 
-    async function confermaScadenzaDB() {
-        const v = document.getElementById('deadlineInput').value;
-        if(!v) return alert("Inserisci una data!");
-        const { error } = await _supabase.from('configurazione').upsert({ chiave: 'scadenza_adesioni', valore: v }, { onConflict: 'chiave' });
-        if(!error) { showToast("Timer Aggiornato!"); }
-    }
-
-    async function resetScadenzaDB() {
-        if(!confirm("Vuoi rimuovere il timer e riaprire le iscrizioni?")) return;
-        const { error } = await _supabase.from('configurazione').upsert({ chiave: 'scadenza_adesioni', valore: "" }, { onConflict: 'chiave' });
-        if(!error) { showToast("Timer Rimosso!"); }
-    }
-
     async function caricaTabella() {
         const { data } = await _supabase.from('presenze').select('*').order('nome');
         if(!data) return;
+        
+        // Evita sfarfallio se i dati non sono cambiati
+        if (JSON.stringify(currentData) === JSON.stringify(data)) return;
+        
         currentData = data;
         const tbody = document.getElementById('tabella-body');
         const listContent = document.getElementById('listContent');
-        
-        // Salviamo la posizione dello scroll per evitare che la tabella "salti" ad ogni aggiornamento
-        const currentScroll = document.querySelector('.table-wrapper').scrollTop;
+        const scrollBox = document.querySelector('.table-wrapper');
+        const currentScroll = scrollBox.scrollTop;
         
         tbody.innerHTML = '';
         listContent.innerHTML = '';
@@ -304,13 +292,13 @@
             const displayAdmin = isAdmin ? 'table-cell' : 'none';
 
             tr.innerHTML = `
-                <td class="col-admin" data-label="Sel." style="display:${displayAdmin}"><input type="checkbox" class="bulk-cb" value="${p.id}"></td>
+                <td class="col-admin" style="display:${displayAdmin}"><input type="checkbox" class="bulk-cb" value="${p.id}"></td>
                 <td class="nome-cell">${p.nome}${p.bloccato ? ' 🔒' : ''}</td>
                 <td data-label="Categoria">${p.categoria}</td>
                 <td data-label="Partecipa"><input type="radio" name="r_${p.id}" ${p.stato==='si'?'checked':''} ${disabled} onclick="salva('${p.id}','si')"></td>
                 <td data-label="Non Partecipa"><input type="radio" name="r_${p.id}" ${p.stato==='no'?'checked':''} ${disabled} onclick="salva('${p.id}','no')"></td>
                 <td data-label="Reset"><button class="action-btn" onclick="salva('${p.id}','vuoto')" ${disabled}>🔄</button></td>
-                <td class="col-admin" data-label="Azioni" style="display:${displayAdmin}">
+                <td class="col-admin" style="display:${displayAdmin}">
                     <button class="action-btn" onclick="toggleLock('${p.id}', ${p.bloccato})">${p.bloccato?'🔒':'🔓'}</button>
                     <button class="action-btn" onclick="eliminaAtleta('${p.id}','${p.nome}')">🗑️</button>
                 </td>
@@ -331,24 +319,17 @@
         
         document.getElementById('count-si').innerText = cSi;
         document.getElementById('count-no').innerText = cNo;
-        
-        document.querySelector('.table-wrapper').scrollTop = currentScroll;
-        filterTable(); // Mantieni eventuale filtro attivo
+        scrollBox.scrollTop = currentScroll;
+        filterTable();
     }
 
     async function salva(id, val) { 
-        // Ottimizzazione Visiva: cambiamo il colore immediatamente prima della risposta del DB
-        const input = document.querySelector(`input[name="r_${id}"]`);
-        if (input) {
-            const tr = input.closest('tr');
-            tr.className = val === 'si' ? 'bg-si' : (val === 'no' ? 'bg-no' : '');
-        }
-
         const atleta = currentData.find(a => a.id == id);
         const { error } = await _supabase.from('presenze').update({ stato: val }).eq('id', id);
         if(!error) {
-            showToast("Registrato");
+            showToast("Salvato");
             if (val !== 'vuoto') inviaTelegram(atleta.nome, val, document.getElementById('mainTitle').innerText);
+            await caricaTabella(); 
         }
     }
 
@@ -375,10 +356,26 @@
         }
     }
 
+    async function confermaScadenzaDB() {
+        const v = document.getElementById('deadlineInput').value;
+        if(!v) return alert("Inserisci una data!");
+        await _supabase.from('configurazione').upsert({ chiave: 'scadenza_adesioni', valore: v }, { onConflict: 'chiave' });
+        showToast("Scadenza impostata");
+        await caricaConfig();
+    }
+
+    async function resetScadenzaDB() {
+        if(!confirm("Rimuovere il timer?")) return;
+        await _supabase.from('configurazione').upsert({ chiave: 'scadenza_adesioni', valore: "" }, { onConflict: 'chiave' });
+        showToast("Timer rimosso");
+        await caricaConfig();
+    }
+
     async function salvaTitolo() { 
         const t = document.getElementById('editTitleInput').value;
         await _supabase.from('configurazione').upsert({ chiave: 'titolo_gara', valore: t }, { onConflict: 'chiave' });
         showToast("Titolo aggiornato");
+        await caricaConfig();
     }
 
     async function exportToExcel() {
@@ -390,32 +387,24 @@
     }
 
     function selectAll(s) { document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = s.checked); }
-    
     async function bulkAction(l) { 
         const ids = Array.from(document.querySelectorAll('.bulk-cb:checked')).map(cb => cb.value);
-        if (ids.length) await _supabase.from('presenze').update({ bloccato: l }).in('id', ids);
+        if (ids.length) { await _supabase.from('presenze').update({ bloccato: l }).in('id', ids); await caricaTabella(); }
     }
-    
-    async function toggleLock(id, cur) { await _supabase.from('presenze').update({ bloccato: !cur }).eq('id', id); }
-    async function eliminaAtleta(id, n) { if(confirm(`Eliminare ${n}?`)) { await _supabase.from('presenze').delete().eq('id', id); } }
-    async function resetTutti() { if(confirm("Resettare tutto?")) { await _supabase.from('presenze').update({ stato: 'vuoto' }).neq('id', 0); } }
-    async function unlockEverything() { await _supabase.from('presenze').update({ bloccato: false }).neq('id', 0); }
-    
+    async function toggleLock(id, cur) { await _supabase.from('presenze').update({ bloccato: !cur }).eq('id', id); await caricaTabella(); }
+    async function eliminaAtleta(id, n) { if(confirm(`Eliminare ${n}?`)) { await _supabase.from('presenze').delete().eq('id', id); await caricaTabella(); } }
+    async function resetTutti() { if(confirm("Resettare tutto?")) { await _supabase.from('presenze').update({ stato: 'vuoto' }).neq('id', 0); await caricaTabella(); } }
+    async function unlockEverything() { await _supabase.from('presenze').update({ bloccato: false }).neq('id', 0); await caricaTabella(); }
     async function aggiungiAtleta() {
         const n = document.getElementById('newNome').value, c = document.getElementById('newCat').value;
-        if(n && c) { 
-            await _supabase.from('presenze').insert([{ nome: n, categoria: c, stato: 'vuoto' }]); 
-            document.getElementById('newNome').value = ""; 
-        }
+        if(n && c) { await _supabase.from('presenze').insert([{ nome: n, categoria: c, stato: 'vuoto' }]); document.getElementById('newNome').value = ""; await caricaTabella(); }
     }
-
     function filterTable() {
-        const s = document.getElementById("searchInput").value.toUpperCase();
-        document.querySelectorAll("#tabella-body tr").forEach(tr => { 
-            tr.style.display = tr.innerText.toUpperCase().includes(s) ? "" : "none"; 
-        });
+        const sInput = document.getElementById("searchInput");
+        if(!sInput) return;
+        const s = sInput.value.toUpperCase();
+        document.querySelectorAll("#tabella-body tr").forEach(tr => { tr.style.display = tr.innerText.toUpperCase().includes(s) ? "" : "none"; });
     }
-
     function showToast(m) { const t = document.getElementById("toast"); t.innerText = m; t.className = "show"; setTimeout(() => t.className = "", 3000); }
     function logoutAdmin() { location.reload(); }
     function toggleDarkMode() { const t = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.body.setAttribute('data-theme', t); localStorage.setItem('theme', t); }
