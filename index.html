@@ -23,14 +23,28 @@
         body { margin: 0; padding: 0; background-color: var(--bg-body); color: var(--text-main); font-family: 'Segoe UI', sans-serif; transition: 0.3s; }
         .container { max-width: 1000px; margin: 0 auto; padding: 15px; background: var(--bg-card); min-height: 100vh; }
 
-        .logo-container { text-align: center; margin-bottom: 20px; position: relative; min-height: 120px; display: flex; justify-content: center; align-items: center; }
-        .logo-container img { width: 220px; height: auto; border-radius: 8px; transition: 0.3s; }
+        .logo-container { 
+            text-align: center; 
+            margin-bottom: 5px; 
+            position: relative; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            padding: 0;
+        }
+        .logo-container img { 
+            width: 660px;
+            max-width: 100%; 
+            height: auto; 
+            border-radius: 8px; 
+            display: block;
+        }
         
-        .top-btns { position: absolute; top: 0; right: 0; display: flex; gap: 8px; }
-        .icon-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 5px; }
+        .top-btns { position: absolute; top: 5px; right: 5px; display: flex; gap: 8px; z-index: 10; }
+        .icon-btn { background: rgba(255,255,255,0.7); border: none; font-size: 1.2rem; cursor: pointer; padding: 5px; border-radius: 50%; }
         .logout-btn { display: none; color: var(--danger); border: 1px solid var(--danger); border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 0.7rem; font-weight: bold; background: white; }
         
-        h2 { text-align: center; color: var(--primary); margin: 10px 0; font-size: 1.3rem; text-transform: uppercase; }
+        h2 { text-align: center; color: var(--primary); margin: 5px 0 15px 0; font-size: 1.3rem; text-transform: uppercase; }
 
         .countdown-container { text-align: center; margin: 10px 0; padding: 15px; border-radius: 12px; background: var(--timer-bg); border: 2px solid var(--primary); transition: 0.5s; min-height: 60px; display: flex; align-items: center; justify-content: center; }
         .timer { font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: bold; color: var(--primary); }
@@ -489,7 +503,28 @@
     async function salvaTitolo() { const t = document.getElementById('editTitleInput').value; await _supabase.from(T_CONF).upsert({ chiave: 'titolo_gara', valore: t }, { onConflict: 'chiave' }); showToast("Titolo Aggiornato"); caricaConfig(); }
     async function confermaScadenzaDB() { const v = document.getElementById('deadlineInput').value; if(v) await _supabase.from(T_CONF).upsert({ chiave: 'scadenza_adesioni', valore: v }, { onConflict: 'chiave' }); caricaConfig(); }
     async function resetScadenzaDB() { await _supabase.from(T_CONF).upsert({ chiave: 'scadenza_adesioni', valore: "" }, { onConflict: 'chiave' }); caricaConfig(); }
-    async function aggiungiAtleta() { const n = document.getElementById('newNome').value, c = document.getElementById('newCat').value; if(n && c) { await _supabase.from(T_DATA).insert([{ nome: n, categoria: c, stato: 'vuoto', note: 'A' }]); document.getElementById('newNome').value = ""; caricaTabella(); } }
+    
+    async function aggiungiAtleta() { 
+        const n = document.getElementById('newNome').value.trim(); 
+        const c = document.getElementById('newCat').value.trim(); 
+        if(n && c) { 
+            const { error } = await _supabase.from(T_DATA).insert([
+                { nome: n, categoria: c.toUpperCase(), stato: 'vuoto', note: 'A', bloccato: false }
+            ]);
+            
+            if(error) {
+                console.error("Errore:", error.message);
+                alert("Errore RLS: Crea la Policy INSERT su Supabase come ti ho spiegato!");
+            } else {
+                document.getElementById('newNome').value = ""; 
+                document.getElementById('newCat').value = "";
+                showToast("Atleta aggiunto!");
+                await caricaTabella(); 
+            }
+        } else {
+            alert("Inserisci sia il nome che la categoria.");
+        }
+    }
     
     async function salvaEtichetteDate() { 
         const a = document.getElementById('dateA_Label').value, b = document.getElementById('dateB_Label').value, c = document.getElementById('dateC_Label').value; 
