@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Gestione Presenze Juvenilia - Gara 2</title>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
-    
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
@@ -15,37 +13,38 @@
             --purple: #673ab7; --orange: #ff9800; --table-header: #2c3e50; 
             --bg-body: #f0f2f5; --bg-card: #ffffff; --text-main: #333333;
             --timer-bg: #e8f0fe;
-            --row-alt: #f1f3f5; 
-            --border-color: #cbd5e0;
         }
 
         [data-theme="dark"] {
             --bg-body: #121212; --bg-card: #1e1e1e; --text-main: #e0e0e0;
             --table-header: #000000; --primary: #8ab4f8; --timer-bg: #1a273a;
-            --row-alt: #2d2d2d;
-            --border-color: #444444;
         }
 
         body { margin: 0; padding: 0; background-color: var(--bg-body); color: var(--text-main); font-family: 'Segoe UI', sans-serif; transition: 0.3s; }
         .container { max-width: 1000px; margin: 0 auto; padding: 15px; background: var(--bg-card); min-height: 100vh; }
 
-        .logo-container { text-align: center; margin-bottom: 5px; position: relative; min-height: auto; display: flex; justify-content: center; align-items: center; padding: 0; }
-        .logo-container img { width: 660px; max-width: 100%; height: auto; border-radius: 8px; transition: 0.3s; display: block; margin: 0 auto; }
+        .logo-container { 
+            text-align: center; 
+            margin-bottom: 5px; 
+            position: relative; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            padding: 0;
+        }
+        .logo-container img { 
+            width: 660px;
+            max-width: 100%; 
+            height: auto; 
+            border-radius: 8px; 
+            display: block;
+        }
         
-        .top-btns { position: absolute; top: 0; right: 0; display: flex; gap: 8px; z-index: 100; }
-        .icon-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; padding: 5px; }
+        .top-btns { position: absolute; top: 5px; right: 5px; display: flex; gap: 8px; z-index: 10; }
+        .icon-btn { background: rgba(255,255,255,0.7); border: none; font-size: 1.2rem; cursor: pointer; padding: 5px; border-radius: 50%; }
         .logout-btn { display: none; color: var(--danger); border: 1px solid var(--danger); border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 0.7rem; font-weight: bold; background: white; }
         
-        h2 { text-align: center; color: var(--primary); margin: 10px 0 5px 0; font-size: 1.3rem; text-transform: uppercase; }
-
-        .info-btns-container { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 15px; }
-        .btn-info-link {
-            display: none; padding: 10px 20px; color: white; text-decoration: none;
-            border-radius: 20px; font-weight: bold; font-size: 0.8rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            text-transform: uppercase;
-        }
-        #btnProgrammaGara { background-color: var(--orange); }
-        #btnInfoExtra { background-color: var(--purple); }
+        h2 { text-align: center; color: var(--primary); margin: 5px 0 15px 0; font-size: 1.3rem; text-transform: uppercase; }
 
         .countdown-container { text-align: center; margin: 10px 0; padding: 15px; border-radius: 12px; background: var(--timer-bg); border: 2px solid var(--primary); transition: 0.5s; min-height: 60px; display: flex; align-items: center; justify-content: center; }
         .timer { font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: bold; color: var(--primary); }
@@ -88,40 +87,11 @@
         [data-theme="dark"] .atleta-tag { background: #333; color: white; border-color: #444; }
 
         .search-box { position: sticky; top: 0; z-index: 100; width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; font-size: 16px; box-sizing: border-box; background: var(--bg-card); }
-        
-        .table-wrapper { 
-            width: 100%; 
-            max-height: 60vh; 
-            overflow-y: auto; 
-            border-radius: 8px; 
-            border: 1px solid var(--border-color); 
-            background: var(--bg-card);
-        }
-        
-        table { width: 100%; border-collapse: separate; border-spacing: 0; }
-        
-        thead th { 
-            background: var(--table-header); 
-            color: white; 
-            font-size: 0.70rem; 
-            position: sticky; 
-            top: 0; 
-            z-index: 50; 
-            padding: 12px 2px; 
-            text-transform: uppercase; 
-            border-bottom: 2px solid var(--border-color);
-            box-shadow: inset 0 1px 0 var(--table-header);
-        }
-        
-        tbody tr:nth-child(even) { background-color: var(--row-alt); }
-        tbody tr:hover { background-color: rgba(26, 115, 232, 0.05); }
-
-        .sortable { cursor: pointer; user-select: none; }
-        .sortable:hover { background: #34495e; }
-        .sort-icon { font-size: 0.6rem; margin-left: 5px; opacity: 0.6; display: none; }
-
-        td { padding: 12px 2px; border-bottom: 1px solid var(--border-color); text-align: center; }
-        .nome-cell { text-align: left; font-weight: bold; padding-left: 10px !important; border-right: 1px solid var(--border-color); }
+        .table-wrapper { width: 100%; max-height: 60vh; overflow-y: auto; border-radius: 8px; border: 1px solid #eee; }
+        <table> { width: 100%; border-collapse: collapse; }
+        thead th { background: var(--table-header); color: white; font-size: 0.70rem; position: sticky; top: 0; z-index: 10; padding: 12px 2px; text-transform: uppercase; }
+        td { padding: 10px 2px; border-bottom: 1px solid #eee; text-align: center; }
+        .nome-cell { text-align: left; font-weight: bold; padding-left: 10px !important; }
         
         .date-label { font-size: 0.65rem; color: var(--primary); display: block; font-weight: bold; margin-top: 2px; }
         .date-assign-btns { margin-top: 5px; display: flex; gap: 5px; }
@@ -137,23 +107,9 @@
 
         @media screen and (max-width: 600px) {
             thead { display: none; }
-            .table-wrapper { border: none; padding: 0; max-height: none; overflow-y: visible; }
-            tr { 
-                display: block; 
-                margin-bottom: 18px; 
-                border: 2px solid var(--border-color); 
-                border-radius: 12px; 
-                overflow: hidden;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                background: var(--bg-card) !important;
-            }
-            tr:nth-child(even) { background: var(--row-alt) !important; }
-            td { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 12px 15px; }
-            td:last-child { border-bottom: none; }
+            td { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 10px 15px; }
             td::before { content: attr(data-label); font-weight: bold; font-size: 0.70rem; color: #777; }
-            td[data-label="Partecipa"]::before, td[data-label="Non Partecipa"]::before, td[data-label="Reset"]::before { content: ""; }
-            td[data-label="Partecipa"], td[data-label="Non Partecipa"], td[data-label="Reset"] { justify-content: center; padding: 10px 15px; }
-            .nome-cell { background: rgba(26, 115, 232, 0.05); border-right: none; justify-content: center; font-size: 1.1rem; flex-direction: column; text-align: center; padding: 18px !important; border-bottom: 2px solid var(--primary); }
+            .nome-cell { background: rgba(0,0,0,0.03); justify-content: center; font-size: 1.0rem; flex-direction: column; }
             .nome-cell::before { display: none; }
         }
     </style>
@@ -174,13 +130,8 @@
 
     <h2 id="mainTitle">Sincronizzazione...</h2>
     
-    <div class="info-btns-container">
-        <a id="btnProgrammaGara" href="#" target="_blank" class="btn-info-link">Link 1</a>
-        <a id="btnInfoExtra" href="#" target="_blank" class="btn-info-link">Link 2</a>
-    </div>
-    
     <div id="countdownBox" class="countdown-container">
-        <div id="timerDisplay" class="timer">Caricamento...</div>
+        <div id="timerDisplay" class="timer">Inizializzazione...</div>
     </div>
 
     <div id="addAtletaBox">
@@ -188,28 +139,8 @@
             <input type="text" id="editTitleInput" placeholder="Titolo della gara...">
             <button onclick="salvaTitolo()" style="background:var(--purple);">Aggiorna Titolo</button>
         </div>
-
-        <div style="padding: 10px; border: 1px dashed var(--orange); border-radius: 8px;">
-            <div style="font-size: 11px; font-weight: bold; color: var(--orange); margin-bottom: 5px;">🟧 PULSANTE 1 (ARANCIO):</div>
-            <div class="admin-row">
-                <input type="text" id="labelProgrammaInput" placeholder="Testo pulsante">
-                <input type="text" id="linkProgrammaInput" placeholder="URL Link (PDF)">
-                <button onclick="salvaDoppiaConfig('link_programma', 'linkProgrammaInput', 'label_programma', 'labelProgrammaInput')" style="background:var(--success);">Salva 1</button>
-                <button onclick="azzeraConfigPulsante('link_programma', 'label_programma')" style="background:var(--danger);">🗑️ Azzera</button>
-            </div>
-        </div>
-
-        <div style="padding: 10px; border: 1px dashed var(--purple); border-radius: 8px; margin-top: 10px;">
-            <div style="font-size: 11px; font-weight: bold; color: var(--purple); margin-bottom: 5px;">🟪 PULSANTE 2 (VIOLA):</div>
-            <div class="admin-row">
-                <input type="text" id="labelExtraInput" placeholder="Testo pulsante">
-                <input type="text" id="linkExtraInput" placeholder="URL Link (PDF)">
-                <button onclick="salvaDoppiaConfig('link_extra', 'linkExtraInput', 'label_extra', 'labelExtraInput')" style="background:var(--success);">Salva 2</button>
-                <button onclick="azzeraConfigPulsante('link_extra', 'label_extra')" style="background:var(--danger);">🗑️ Azzera</button>
-            </div>
-        </div>
         
-        <div style="font-size: 11px; font-weight: bold; color: var(--primary); margin-top: 10px;">📅 ETICHETTE DATE (A / B / C):</div>
+        <div style="font-size: 11px; font-weight: bold; color: var(--primary);">📅 ETICHETTE DATE (A / B / C):</div>
         <div class="admin-row">
             <input type="text" id="dateA_Label" placeholder="Data A">
             <input type="text" id="dateB_Label" placeholder="Data B">
@@ -222,6 +153,7 @@
             <input type="text" id="newNome" placeholder="Cognome e Nome">
             <input type="text" id="newCat" placeholder="Categoria">
             <button onclick="aggiungiAtleta()" style="background:var(--primary);">+ Aggiungi</button>
+            <button onclick="toggleSort()" style="background:var(--table-header);">↕️ Ordina: <span id="sortLabel">Nome</span></button>
         </div>
         
         <div class="admin-row">
@@ -258,12 +190,12 @@
     <input type="text" id="searchInput" class="search-box" onkeyup="filterTable()" placeholder="🔍 Cerca il tuo nome...">
 
     <div class="table-wrapper">
-        <table id="mainTableElement">
+        <table>
             <thead>
                 <tr>
-                    <th class="col-admin"><input type="checkbox" id="headerCheckbox" onclick="selectAll(this)"></th>
-                    <th id="th-nome">Atleta <span id="sort-nome" class="sort-icon">▲</span></th>
-                    <th id="th-cat">Categoria <span id="sort-cat" class="sort-icon"></span></th>
+                    <th class="col-admin"><input type="checkbox" onclick="selectAll(this)"></th>
+                    <th>Atleta</th>
+                    <th>Categoria</th>
                     <th>Partecipa</th>
                     <th>Non Partecipa</th>
                     <th>Reset</th>
@@ -291,14 +223,13 @@
     const ADMIN_PASS = "juvenilia1179";
     
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const T_DATA = 'gara2', T_CONF = 'config_gara2';
+    const T_DATA = 'presenze_gara2'; 
+    const T_CONF = 'configurazione_gara2';
 
     let isAdmin = false, isExpired = false, currentData = [], timerInterval;
-    let labelA = "", labelB = "", labelC = "";
-    let sortBy = 'nome'; 
+    let labelA = "", labelB = "", labelC = "", sortBy = 'nome'; 
     let costiCategorie = {};
-    let configGiaCaricataUnaVolta = false;
-    let selectedIds = new Set(); 
+    let isEditingCosti = false;
 
     const customCatOrder = { "SENIOR": 1, "JUNIOR": 2, "ALLIEVI": 3, "RAGAZZI": 4, "R12": 5, "ESORDIENTI": 6, "GIOVANISSIMI": 7 };
 
@@ -313,73 +244,38 @@
         await caricaTabella();
     }
 
-    function cambiaOrdine(tipo) {
-        if(!isAdmin) return;
-        sortBy = tipo;
-        document.getElementById('sort-nome').innerText = tipo === 'nome' ? '▲' : '';
-        document.getElementById('sort-cat').innerText = tipo === 'categoria' ? '▲' : '';
-        renderData();
-    }
-
     async function caricaConfig() {
         const { data } = await _supabase.from(T_CONF).select('*');
         if(!data) return;
 
         const tit = data.find(c => c.chiave === 'titolo_gara');
         const sca = data.find(c => c.chiave === 'scadenza_adesioni');
-        const progLink = data.find(c => c.chiave === 'link_programma');
-        const progLabel = data.find(c => c.chiave === 'label_programma');
-        const extraLink = data.find(c => c.chiave === 'link_extra');
-        const extraLabel = data.find(c => c.chiave === 'label_extra');
-        
         labelA = data.find(c => c.chiave === 'data_label_a')?.valore || "";
         labelB = data.find(c => c.chiave === 'data_label_b')?.valore || "";
         labelC = data.find(c => c.chiave === 'data_label_c')?.valore || "";
 
-        if (!isAdmin || !configGiaCaricataUnaVolta) {
-            document.getElementById('dateA_Label').value = labelA;
-            document.getElementById('dateB_Label').value = labelB;
-            document.getElementById('dateC_Label').value = labelC;
-            document.getElementById('linkProgrammaInput').value = progLink?.valore || "";
-            document.getElementById('labelProgrammaInput').value = progLabel?.valore || "";
-            document.getElementById('linkExtraInput').value = extraLink?.valore || "";
-            document.getElementById('labelExtraInput').value = extraLabel?.valore || "";
-            document.getElementById('editTitleInput').value = tit?.valore || "";
-            if(isAdmin) configGiaCaricataUnaVolta = true;
-        }
-
-        const b1 = document.getElementById('btnProgrammaGara');
-        if(progLink?.valore && progLink.valore !== "") {
-            b1.href = progLink.valore;
-            b1.innerText = progLabel?.valore || "LINK 1";
-            b1.style.display = 'block';
-        } else { b1.style.display = 'none'; }
-
-        const b2 = document.getElementById('btnInfoExtra');
-        if(extraLink?.valore && extraLink.valore !== "") {
-            b2.href = extraLink.valore;
-            b2.innerText = extraLabel?.valore || "LINK 2";
-            b2.style.display = 'block';
-        } else { b2.style.display = 'none'; }
+        document.getElementById('dateA_Label').value = labelA;
+        document.getElementById('dateB_Label').value = labelB;
+        document.getElementById('dateC_Label').value = labelC;
 
         costiCategorie = {};
         data.filter(c => c.chiave.startsWith('costo_')).forEach(c => {
             costiCategorie[c.chiave.replace('costo_', '').toUpperCase()] = parseFloat(c.valore) || 0;
         });
 
-        document.getElementById('mainTitle').innerText = tit?.valore || "Gara 2";
-        
-        const countdownBox = document.getElementById('countdownBox');
-        if(sca?.valore && sca.valore !== "") {
-            countdownBox.style.display = 'flex';
+        document.getElementById('mainTitle').innerText = tit?.valore || "Gara Juvenilia - Gara 2";
+
+        if(sca?.valore) {
             const diff = new Date(sca.valore).getTime() - new Date().getTime();
             if(diff <= 0) { isExpired = true; mostraTimerChiuso(); }
             else { isExpired = false; startCountdown(sca.valore); }
         } else {
             isExpired = false;
-            countdownBox.style.display = 'none';
             if(timerInterval) clearInterval(timerInterval);
+            document.getElementById('timerDisplay').innerText = "TERMINE DA DEFINIRE";
         }
+        
+        if(isAdmin && !isEditingCosti) renderCostiInputs();
     }
 
     async function caricaTabella() {
@@ -389,58 +285,44 @@
 
     function renderCostiInputs() {
         const container = document.getElementById('costiInputs');
-        if (container.children.length > 0) return; 
-
         const cats = [...new Set(currentData.map(a => a.categoria.toUpperCase()))];
         cats.sort((a, b) => (customCatOrder[a] || 999) - (customCatOrder[b] || 999));
+
         container.innerHTML = '';
         cats.forEach(c => {
             const val = costiCategorie[c] || 0;
             container.innerHTML += `<div style="text-align:center; min-width:80px;"><label style="font-size:10px; display:block; font-weight:bold;">${c}</label>
             <input type="number" step="0.5" class="costo-in" data-cat="${c}" value="${val}" 
+            onfocus="isEditingCosti=true" onblur="isEditingCosti=false"
             style="width:65px; padding:8px; text-align:center; border: 1px solid #ccc; border-radius:5px;"></div>`;
         });
     }
 
-    async function salvaDoppiaConfig(kLink, idLink, kLabel, idLabel) {
-        const u = document.getElementById(idLink).value;
-        const l = document.getElementById(idLabel).value;
-        await _supabase.from(T_CONF).upsert([{ chiave: kLink, valore: u }, { chiave: kLabel, valore: l }], { onConflict: 'chiave' });
-        showToast("Configurazione Salvata");
-        configGiaCaricataUnaVolta = false;
-        caricaConfig();
-    }
-
-    async function azzeraConfigPulsante(kLink, kLabel) {
-        if(confirm("Vuoi azzerare questo pulsante? Verrà rimosso dalla visualizzazione utenti.")) {
-            await _supabase.from(T_CONF).upsert([{ chiave: kLink, valore: "" }, { chiave: kLabel, valore: "" }], { onConflict: 'chiave' });
-            showToast("Pulsante Azzerato");
-            configGiaCaricataUnaVolta = false;
-            caricaConfig();
-        }
-    }
-
     async function salvaCosti() {
-        const upserts = Array.from(document.querySelectorAll('.costo-in')).map(i => ({ chiave: `costo_${i.dataset.cat}`, valore: i.value }));
+        isEditingCosti = false;
+        const upserts = Array.from(document.querySelectorAll('.costo-in')).map(i => ({
+            chiave: `costo_${i.dataset.cat}`,
+            valore: i.value
+        }));
         await _supabase.from(T_CONF).upsert(upserts, { onConflict: 'chiave' });
-        showToast("Quote salvate!");
-        document.getElementById('costiInputs').innerHTML = '';
-        caricaConfig();
+        showToast("Quote salvate!"); 
+        await caricaConfig();
     }
 
     async function eliminaTutteLeQuoteDB() {
-        if(confirm("Eliminare tutte le quote?")) {
-            const ks = Object.keys(costiCategorie).map(c => `costo_${c}`);
-            if(ks.length) { await _supabase.from(T_CONF).delete().in('chiave', ks); showToast("Svuotato"); document.getElementById('costiInputs').innerHTML = ''; await caricaConfig(); }
+        if(confirm("Eliminare tutte le quote dal database?")) {
+            const keys = Object.keys(costiCategorie).map(c => `costo_${c}`);
+            if(keys.length) await _supabase.from(T_CONF).delete().in('chiave', keys);
+            costiCategorie = {};
+            showToast("Database Costi Svuotato");
+            await caricaConfig();
         }
     }
 
-    function updateSelectedSet(cb) {
-        if (cb.checked) {
-            selectedIds.add(String(cb.value));
-        } else {
-            selectedIds.delete(String(cb.value));
-        }
+    function toggleSort() {
+        sortBy = sortBy === 'nome' ? 'categoria' : 'nome';
+        document.getElementById('sortLabel').innerText = sortBy === 'nome' ? 'Nome' : 'Categoria';
+        renderData();
     }
 
     function renderData() {
@@ -449,7 +331,7 @@
         if (!tbody) return;
         tbody.innerHTML = ''; listContent.innerHTML = '';
         let cSi = 0, cNo = 0, totaleEuro = 0, partPerCat = {};
-        
+
         let sorted = [...currentData].sort((a,b) => {
             if (sortBy === 'categoria') {
                 const orderA = customCatOrder[a.categoria.toUpperCase()] || 999;
@@ -461,44 +343,69 @@
 
         sorted.forEach(p => {
             if (p.bloccato && !isAdmin) return;
-            let dUf = p.note === 'B' ? labelB : (p.note === 'C' ? labelC : labelA);
+            
+            let dataUf = p.note === 'B' ? labelB : (p.note === 'C' ? labelC : labelA);
             if(p.stato === 'si') {
-                cSi++; totaleEuro += (costiCategorie[p.categoria.toUpperCase()] || 0);
+                cSi++;
+                totaleEuro += (costiCategorie[p.categoria.toUpperCase()] || 0);
                 if(!partPerCat[p.categoria]) partPerCat[p.categoria] = [];
-                partPerCat[p.categoria].push({nome: p.nome, data: dUf});
+                partPerCat[p.categoria].push({nome: p.nome, data: dataUf});
             }
             if(p.stato === 'no') cNo++;
+
             const tr = document.createElement('tr');
             const disabled = isExpired && !isAdmin ? 'disabled' : '';
-            const dAdm = isAdmin ? 'table-cell' : 'none';
-            const lbl = dUf ? `<span class="date-label">${dUf}</span>` : "";
-            const isChecked = selectedIds.has(String(p.id)) ? 'checked' : '';
+            const displayAdmin = isAdmin ? 'table-cell' : 'none';
+            const labelHtml = dataUf ? `<span class="date-label">${dataUf}</span>` : "";
 
-            tr.innerHTML = `<td class="col-admin" style="display:${dAdm}"><input type="checkbox" class="bulk-cb" value="${p.id}" ${isChecked} onchange="updateSelectedSet(this)"></td>
-                <td class="nome-cell">${p.nome}${p.bloccato ? ' 🔒' : ''}${lbl}
-                    <div class="date-assign-btns col-admin" style="display:${dAdm}">
+            const lockIcon = p.bloccato ? 
+                `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>` : 
+                `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 17c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6-9h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6h1.9c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm0 12H6V10h12v10z"/></svg>`;
+
+            const deleteIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`;
+
+            tr.innerHTML = `
+                <td class="col-admin" style="display:${displayAdmin}"><input type="checkbox" class="bulk-cb" value="${p.id}"></td>
+                <td class="nome-cell">
+                    ${p.nome}${p.bloccato ? ' 🔒' : ''}
+                    ${labelHtml}
+                    <div class="date-assign-btns col-admin" style="display:${displayAdmin}">
                         <button class="btn-date-small ${p.note !== 'B' && p.note !== 'C' ? 'active' : ''}" onclick="assegnaData('${p.id}', 'A')">A</button>
                         <button class="btn-date-small ${p.note === 'B' ? 'active' : ''}" onclick="assegnaData('${p.id}', 'B')">B</button>
                         <button class="btn-date-small ${p.note === 'C' ? 'active' : ''}" onclick="assegnaData('${p.id}', 'C')">C</button>
                     </div>
                 </td>
                 <td data-label="Categoria">${p.categoria}</td>
-                <td data-label="Partecipa"><label><input type="radio" name="r_${p.id}" value="si" ${p.stato==='si'?'checked':''} ${disabled} onclick="salva('${p.id}','si')"><span class="badge-btn badge-si">PARTECIPA</span></label></td>
-                <td data-label="Non Partecipa"><label><input type="radio" name="r_${p.id}" value="no" ${p.stato==='no'?'checked':''} ${disabled} onclick="salva('${p.id}','no')"><span class="badge-btn badge-no">NON PARTECIPA</span></label></td>
+                <td data-label="Partecipa">
+                    <label><input type="radio" name="r_${p.id}" value="si" ${p.stato==='si'?'checked':''} ${disabled} onclick="salva('${p.id}','si')"><span class="badge-btn badge-si">PARTECIPA</span></label>
+                </td>
+                <td data-label="Non Partecipa">
+                    <label><input type="radio" name="r_${p.id}" value="no" ${p.stato==='no'?'checked':''} ${disabled} onclick="salva('${p.id}','no')"><span class="badge-btn badge-no">NON PARTECIPA</span></label>
+                </td>
                 <td data-label="Reset"><button class="btn-reset" onclick="salva('${p.id}','vuoto')" ${disabled}>Reset</button></td>
-                <td class="col-admin" style="display:${dAdm}">
-                    <button class="admin-action-btn btn-lock ${p.bloccato?'locked':''}" onclick="toggleLock('${p.id}', ${p.bloccato})">🔒</button>
-                    <button class="admin-action-btn btn-delete" onclick="eliminaAtleta('${p.id}','${p.nome}')">🗑️</button>
-                </td>`;
+                <td class="col-admin" style="display:${displayAdmin}">
+                    <button class="admin-action-btn btn-lock ${p.bloccato?'locked':''}" onclick="toggleLock('${p.id}', ${p.bloccato})">
+                        ${lockIcon}
+                    </button>
+                    <button class="admin-action-btn btn-delete" onclick="eliminaAtleta('${p.id}','${p.nome}')">
+                        ${deleteIcon}
+                    </button>
+                </td>
+            `;
             tbody.appendChild(tr);
         });
+
         document.getElementById('totaleEuro').innerText = totaleEuro.toFixed(2) + " €";
         document.getElementById('count-si').innerText = cSi;
         document.getElementById('count-no').innerText = cNo;
-        
+
         Object.keys(partPerCat).sort((a,b) => (customCatOrder[a.toUpperCase()] || 999) - (customCatOrder[b.toUpperCase()] || 999)).forEach(cat => {
-            const div = document.createElement('div'); div.innerHTML = `<div class="cat-title">${cat}</div>`;
-            partPerCat[cat].forEach(obj => { div.innerHTML += `<span class="atleta-tag">${obj.nome}${obj.data ? ' ('+obj.data+')' : ''}</span>`; });
+            const div = document.createElement('div');
+            div.innerHTML = `<div class="cat-title">${cat}</div>`;
+            partPerCat[cat].forEach(obj => { 
+                const tagData = obj.data ? ` (${obj.data})` : "";
+                div.innerHTML += `<span class="atleta-tag">${obj.nome}${tagData}</span>`; 
+            });
             listContent.appendChild(div);
         });
         document.getElementById('confirmedList').style.display = cSi > 0 ? 'block' : 'none';
@@ -506,48 +413,63 @@
     }
 
     async function salva(id, val) { 
-        const a = currentData.find(at => at.id == id);
-        if (!isAdmin && !confirm(`Sei veramente ${a.nome}?`)) { renderData(); return; }
+        const atleta = currentData.find(a => a.id == id);
+        if (!isAdmin && !confirm(`Confermi la scelta per ${atleta.nome}?`)) { renderData(); return; }
         await _supabase.from(T_DATA).update({ stato: val }).eq('id', id);
         showToast("Salvato");
         if (val !== 'vuoto') {
-            let d = a.note === 'B' ? labelB : (a.note === 'C' ? labelC : labelA);
-            inviaTelegram(a.nome, val, document.getElementById('mainTitle').innerText, d);
+            let d = atleta.note === 'B' ? labelB : (atleta.note === 'C' ? labelC : labelA);
+            inviaTelegram(atleta.nome, val, document.getElementById('mainTitle').innerText, d);
         }
         caricaTabella(); 
     }
 
-    async function inviaTelegram(n, s, g, d) {
-        const txt = `🏆 *Evento:* ${g}\n👤 *Atleta:* ${n}${d ? '\n📅 *Data:* '+d : ''}\n📝 *Scelta:* ${s === 'si' ? 'partecipa' : 'non partecipa'}`;
-        fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: txt, parse_mode: 'Markdown' }) });
+    async function inviaTelegram(nome, scelta, gara, dataGara) {
+        const scTxt = scelta === 'si' ? 'PARTECIPA' : 'NON PARTECIPA';
+        const dataTxt = dataGara ? `\n📅 *Data:* ${dataGara}` : "";
+        const testo = `🏆 *Evento:* ${gara}\n👤 *Atleta:* ${nome}${dataTxt}\n📝 *Scelta:* ${scTxt}`;
+        fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: testo, parse_mode: 'Markdown' }) });
     }
 
     async function inviaRiepilogoTelegram() {
-        const g = document.getElementById('mainTitle').innerText;
+        const gara = document.getElementById('mainTitle').innerText;
         let pCat = {};
-        currentData.filter(p => p.stato === 'si').forEach(p => { 
-            if(!pCat[p.categoria]) pCat[p.categoria] = []; 
-            let d = p.note === 'B' ? labelB : (p.note === 'C' ? labelC : labelA);
-            pCat[p.categoria].push(`${p.nome}${d ? ' ('+d+')' : ''}`); 
+        currentData.forEach(p => { 
+            if(p.stato === 'si') { 
+                if(!pCat[p.categoria]) pCat[p.categoria] = []; 
+                let d = p.note === 'B' ? labelB : (p.note === 'C' ? labelC : labelA);
+                pCat[p.categoria].push(`${p.nome}${d ? ' ('+d+')' : ''}`); 
+            } 
         });
-        let msg = `📝 *RIEPILOGO ISCRIZIONI*\n🏆 *Evento:* ${g}\n\n`;
+        let msg = `📝 *RIEPILOGO ISCRIZIONI*\n🏆 *Evento:* ${gara}\n\n`;
         Object.keys(pCat).sort((a,b) => (customCatOrder[a.toUpperCase()] || 999) - (customCatOrder[b.toUpperCase()] || 999)).forEach(c => {
-            msg += `*${c.toUpperCase()}:*\n`; pCat[c].sort().forEach(n => { msg += `• ${n} (partecipa)\n`; }); msg += `\n`;
+            msg += `*${c.toUpperCase()}:*\n`;
+            pCat[c].sort().forEach(n => { msg += `• ${n} (partecipa)\n`; });
+            msg += `\n`;
         });
         fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg, parse_mode: 'Markdown' }) });
-        showToast("Inviato");
+        showToast("Riepilogo inviato");
     }
 
     async function exportToExcel() {
-        let t = 0;
-        const de = currentData.map(p => {
+        let grandTotal = 0;
+        const dataExp = currentData.map(p => {
             let d = p.note === 'B' ? labelB : (p.note === 'C' ? labelC : labelA);
-            let q = p.stato === 'si' ? (costiCategorie[p.categoria.toUpperCase()] || 0) : 0; t += q;
-            return { Atleta: p.nome, Categoria: p.categoria, Data: d, Scelta: p.stato === 'si' ? 'partecipa' : (p.stato === 'no' ? 'non partecipa' : '-'), "Quota (€)": q.toFixed(2) };
+            let quota = p.stato === 'si' ? (costiCategorie[p.categoria.toUpperCase()] || 0) : 0;
+            grandTotal += quota;
+            return { 
+                Atleta: p.nome, 
+                Categoria: p.categoria, 
+                Data: d, 
+                Scelta: p.stato === 'si' ? 'partecipa' : (p.stato === 'no' ? 'non partecipa' : 'da definire'),
+                "Quota (€)": quota.toFixed(2)
+            };
         });
-        de.push({ Atleta: "TOTALE", "Quota (€)": t.toFixed(2) });
-        const ws = XLSX.utils.json_to_sheet(de), wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Report"); XLSX.writeFile(wb, `Report_Presenze.xlsx`);
+        dataExp.push({ Atleta: "TOTALE GENERALE", Categoria: "", Data: "", Scelta: "", "Quota (€)": grandTotal.toFixed(2) });
+        const ws = XLSX.utils.json_to_sheet(dataExp);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Contabilità");
+        XLSX.writeFile(wb, `Report_Juvenilia_Gara2.xlsx`);
     }
 
     function toggleAdmin() {
@@ -559,64 +481,75 @@
             document.getElementById('costiBox').style.display = 'flex';
             document.getElementById('adminTotalBox').style.display = 'block';
             document.getElementById('adminButtons').style.display = 'grid';
-            
-            const thNome = document.getElementById('th-nome');
-            const thCat = document.getElementById('th-cat');
-            thNome.classList.add('sortable');
-            thCat.classList.add('sortable');
-            thNome.onclick = () => cambiaOrdine('nome');
-            thCat.onclick = () => cambiaOrdine('categoria');
-            document.querySelectorAll('.sort-icon').forEach(el => el.style.display = 'inline');
-
             document.querySelectorAll('.col-admin').forEach(el => el.style.display = 'table-cell');
-            renderCostiInputs(); renderData();
+            renderCostiInputs(); renderData(); showToast("Admin Attivo");
         }
     }
 
-    function startCountdown(et) {
+    function startCountdown(endTime) {
         if(timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            const dist = new Date(et).getTime() - new Date().getTime();
-            if (dist <= 0) { clearInterval(timerInterval); isExpired = true; mostraTimerChiuso(); return; }
-            const d = Math.floor(dist/86400000), h = Math.floor((dist%86400000)/3600000), m = Math.floor((dist%3600000)/60000), s = Math.floor((dist%60000)/1000);
+            const distance = new Date(endTime).getTime() - new Date().getTime();
+            if (distance <= 0) { clearInterval(timerInterval); isExpired = true; mostraTimerChiuso(); return; }
+            const d = Math.floor(distance/86400000), h = Math.floor((distance%86400000)/3600000), m = Math.floor((distance%3600000)/60000), s = Math.floor((distance%60000)/1000);
             document.getElementById('timerDisplay').innerText = `SCADENZA: ${d}g ${h}h ${m}m ${s}s`;
         }, 1000);
     }
 
-    function mostraTimerChiuso() { const d = document.getElementById('timerDisplay'); d.innerText = "ISCRIZIONI CHIUSE"; d.style.color = "var(--danger)"; }
-    async function salvaTitolo() { const t = document.getElementById('editTitleInput').value; await _supabase.from(T_CONF).upsert({ chiave: 'titolo_gara', valore: t }, { onConflict: 'chiave' }); configGiaCaricataUnaVolta = false; caricaConfig(); }
-    async function confermaScadenzaDB() { const v = document.getElementById('deadlineInput').value; if(v) await _supabase.from(T_CONF).upsert({ chiave: 'scadenza_adesioni', valore: v }, { onConflict: 'chiave' }); configGiaCaricataUnaVolta = false; caricaConfig(); }
-    async function resetScadenzaDB() { await _supabase.from(T_CONF).upsert({ chiave: 'scadenza_adesioni', valore: "" }, { onConflict: 'chiave' }); configGiaCaricataUnaVolta = false; caricaConfig(); }
-    async function aggiungiAtleta() { const n = document.getElementById('newNome').value, c = document.getElementById('newCat').value; if(n && c) { await _supabase.from(T_DATA).insert([{ nome: n, categoria: c, stato: 'vuoto', note: 'A' }]); document.getElementById('newNome').value = ""; caricaTabella(); } }
+    function mostraTimerChiuso() {
+        const d = document.getElementById('timerDisplay'); d.innerText = "ISCRIZIONI CHIUSE"; d.style.color = "var(--danger)";
+    }
+
+    async function salvaTitolo() { const t = document.getElementById('editTitleInput').value; await _supabase.from(T_CONF).upsert({ chiave: 'titolo_gara', valore: t }, { onConflict: 'chiave' }); showToast("Titolo Aggiornato"); caricaConfig(); }
+    async function confermaScadenzaDB() { const v = document.getElementById('deadlineInput').value; if(v) await _supabase.from(T_CONF).upsert({ chiave: 'scadenza_adesioni', valore: v }, { onConflict: 'chiave' }); caricaConfig(); }
+    async function resetScadenzaDB() { await _supabase.from(T_CONF).upsert({ chiave: 'scadenza_adesioni', valore: "" }, { onConflict: 'chiave' }); caricaConfig(); }
+    
+    async function aggiungiAtleta() { 
+        const n = document.getElementById('newNome').value.trim(); 
+        const c = document.getElementById('newCat').value.trim(); 
+        if(n && c) { 
+            const { error } = await _supabase.from(T_DATA).insert([
+                { nome: n, categoria: c.toUpperCase(), stato: 'vuoto', note: 'A', bloccato: false }
+            ]);
+            
+            if(error) {
+                console.error("Errore:", error.message);
+                alert("Errore RLS: Crea la Policy INSERT su Supabase!");
+            } else {
+                document.getElementById('newNome').value = ""; 
+                document.getElementById('newCat').value = "";
+                showToast("Atleta aggiunto!");
+                await caricaTabella(); 
+            }
+        } else {
+            alert("Inserisci sia il nome che la categoria.");
+        }
+    }
+    
     async function salvaEtichetteDate() { 
         const a = document.getElementById('dateA_Label').value, b = document.getElementById('dateB_Label').value, c = document.getElementById('dateC_Label').value; 
-        await _supabase.from(T_CONF).upsert([{ chiave: 'data_label_a', valore: a }, { chiave: 'data_label_b', valore: b }, { chiave: 'data_label_c', valore: c }], { onConflict: 'chiave' }); configGiaCaricataUnaVolta = false; caricaConfig(); 
-    }
-    async function azzeraEtichetteDate() { if(confirm("Azzerare?")) { await _supabase.from(T_CONF).upsert([{ chiave: 'data_label_a', valore: "" }, { chiave: 'data_label_b', valore: "" }, { chiave: 'data_label_c', valore: "" }], { onConflict: 'chiave' }); configGiaCaricataUnaVolta = false; caricaConfig(); } }
-    async function assegnaData(id, t) { await _supabase.from(T_DATA).update({ note: t }).eq('id', id); caricaTabella(); }
-    
-    function selectAll(s) { 
-        const checkboxes = document.querySelectorAll('.bulk-cb');
-        checkboxes.forEach(cb => {
-            cb.checked = s.checked;
-            updateSelectedSet(cb);
-        });
+        await _supabase.from(T_CONF).upsert([{ chiave: 'data_label_a', valore: a }, { chiave: 'data_label_b', valore: b }, { chiave: 'data_label_c', valore: c }], { onConflict: 'chiave' }); 
+        showToast("Etichette salvate!"); caricaConfig(); 
     }
 
-    async function bulkAction(l) { 
-        const ids = Array.from(selectedIds); 
-        if (ids.length) { 
-            await _supabase.from(T_DATA).update({ bloccato: l }).in('id', ids); 
-            selectedIds.clear(); 
-            document.getElementById('headerCheckbox').checked = false;
-            caricaTabella(); 
-        } 
+    async function azzeraEtichetteDate() {
+        if(confirm("Vuoi cancellare tutte le etichette delle date?")) {
+            await _supabase.from(T_CONF).upsert([
+                { chiave: 'data_label_a', valore: "" }, 
+                { chiave: 'data_label_b', valore: "" }, 
+                { chiave: 'data_label_c', valore: "" }
+            ], { onConflict: 'chiave' });
+            showToast("Etichette azzerate!"); caricaConfig();
+        }
     }
 
+    async function assegnaData(id, tipo) { await _supabase.from(T_DATA).update({ note: tipo }).eq('id', id); caricaTabella(); }
+    function selectAll(s) { document.querySelectorAll('.bulk-cb').forEach(cb => cb.checked = s.checked); }
+    async function bulkAction(l) { const ids = Array.from(document.querySelectorAll('.bulk-cb:checked')).map(cb => cb.value); if (ids.length) { await _supabase.from(T_DATA).update({ bloccato: l }).in('id', ids); caricaTabella(); } }
     async function toggleLock(id, cur) { await _supabase.from(T_DATA).update({ bloccato: !cur }).eq('id', id); caricaTabella(); }
     async function unlockEverything() { await _supabase.from(T_DATA).update({ bloccato: false }).neq('id', 0); caricaTabella(); }
-    async function resetTutti() { if(confirm("Resettare tutti?")) { await _supabase.from(T_DATA).update({ stato: 'vuoto' }).neq('id', 0); caricaTabella(); } }
-    async function eliminaAtleta(id, n) { if(confirm(`Elimina ${n}?`)) { await _supabase.from(T_DATA).delete().eq('id', id); caricaTabella(); } }
+    async function resetTutti() { if(confirm("Resettare tutte le scelte?")) { await _supabase.from(T_DATA).update({ stato: 'vuoto' }).neq('id', 0); caricaTabella(); } }
+    async function eliminaAtleta(id, n) { if(confirm(`Eliminare ${n}?`)) { await _supabase.from(T_DATA).delete().eq('id', id); caricaTabella(); } }
     function filterTable() { const s = document.getElementById("searchInput").value.toUpperCase(); document.querySelectorAll("#tabella-body tr").forEach(tr => { tr.style.display = tr.innerText.toUpperCase().includes(s) ? "" : "none"; }); }
     function showToast(m) { const t = document.getElementById("toast"); t.innerText = m; t.className = "show"; setTimeout(() => t.className = "", 3000); }
     function logoutAdmin() { location.reload(); }
